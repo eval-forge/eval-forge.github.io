@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Forge | Frontier AI Model Evaluation</title>
+  <meta name="description" content="Eval Forge evaluates frontier AI models and develops evidence-based conclusions on which models are leading the AI race.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --surface: #121a33;
+      --text: #e9eeff;
+      --muted: #b8c3e6;
+      --accent: #7aa2ff;
+      --border: #2a3868;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      background: radial-gradient(circle at top, #182549 0%, var(--bg) 55%);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.25rem 4rem;
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0 0 0.75rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .hero {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(18, 26, 51, 0.8);
+      backdrop-filter: blur(6px);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      max-width: 64ch;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      background: rgba(18, 26, 51, 0.55);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover,
+    a:focus-visible {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <h1>Eval Forge</h1>
+      <p>
+        We evaluate frontier AI models with rigorous, transparent benchmarks and publish practical conclusions about which systems are currently leading the AI race.
+      </p>
+      <p>
+        Our goal is to cut through hype with repeatable methodology, clear metrics, and open analysis.
+      </p>
+      <p><a href="https://github.com/eval-forge">Explore our repositories on GitHub</a></p>
+    </section>
+
+    <section aria-labelledby="focus-heading">
+      <h2 id="focus-heading">What we do</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Benchmark Frontier Models</h3>
+          <p>Run structured evaluations across reasoning, coding, and real-world task performance.</p>
+        </article>
+        <article class="card">
+          <h3>Compare with Evidence</h3>
+          <p>Use consistent metrics and controlled experiments to produce apples-to-apples comparisons.</p>
+        </article>
+        <article class="card">
+          <h3>Publish Conclusions</h3>
+          <p>Share concise takeaways on strengths, weaknesses, and which models are leading over time.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="principles-heading">
+      <h2 id="principles-heading">Evaluation principles</h2>
+      <p><strong>Reproducibility:</strong> tests and prompts should be repeatable.</p>
+      <p><strong>Clarity:</strong> every conclusion should tie back to concrete evidence.</p>
+      <p><strong>Practicality:</strong> results should help teams choose models for real product decisions.</p>
+    </section>
+
+    <footer>
+      Built by the Eval Forge organization.
+    </footer>
+  </main>
+</body>
+</html>
