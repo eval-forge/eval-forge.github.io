@@ -82,6 +82,36 @@
       font-size: 0.95rem;
     }
 
+    ul {
+      margin: 0 0 1rem 1.25rem;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(18, 26, 51, 0.5);
+      padding: 0.75rem 1rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
     a {
       color: var(--accent);
       text-decoration: none;
@@ -136,6 +166,70 @@
       <p><strong>Reproducibility:</strong> tests and prompts should be repeatable.</p>
       <p><strong>Clarity:</strong> every conclusion should tie back to concrete evidence.</p>
       <p><strong>Practicality:</strong> results should help teams choose models for real product decisions.</p>
+    </section>
+
+    <section aria-labelledby="latest-tests-heading">
+      <h2 id="latest-tests-heading">Latest tests</h2>
+      <p>The most recent comparative run used the following model settings:</p>
+      <ul>
+        <li>GPT-6 Astra high</li>
+        <li>Claude Sonnet 5.5 high</li>
+        <li>Claude Opus 5.5 high</li>
+      </ul>
+      <details>
+        <summary>View latest test prompt</summary>
+        <pre>You are a world-class creative technologist and Three.js expert. Your task is to create a complete, self-contained, production-quality interactive 3D experience in a single HTML file.
+Core Concept
+Build an immersive “Orbital Relic” — a procedurally generated, fully interactive 3D artifact that feels like a living museum piece from a lost civilization. The experience must combine:
+
+A central floating relic (a complex, multi-layered geometric structure made of nested, rotating rings, crystalline cores, and energy filaments).
+An orbiting planetary system of 5–7 smaller celestial bodies that react to the user’s actions.
+Atmospheric particle systems, volumetric-style lighting, and subtle post-processing.
+A sense of discovery, scale, and quiet wonder.
+
+Technical Requirements (all mandatory)
+
+Single self-contained HTML file — no external files. Use only Three.js (latest via CDN) and optionally one additional lightweight library (e.g., GSAP or a small post-processing helper) if needed. Everything else must be pure JavaScript.
+Full 3D scene with:
+Perspective camera + smooth OrbitControls (with damping).
+Physically-based lighting (at least one key directional light + ambient + several colored point lights that pulse).
+Soft shadows and contact shadows where appropriate.
+High-quality materials (MeshStandardMaterial / MeshPhysicalMaterial with transmission, iridescence, or clearcoat on the central relic).
+
+Procedural generation:
+The central relic and its orbiting bodies must be generated algorithmically (no hardcoded vertex lists for the main structures). Use mathematical functions, noise, or recursive geometry.
+
+Interactivity (all required):
+Click / tap any orbiting body → it expands into a detailed holographic information panel floating in 3D space (with title, short lore text, and animated data visualization).
+Double-click the central relic → triggers a dramatic transformation sequence (rings expand, core pulses, particles erupt, camera slowly pulls back).
+Mouse / touch drag to orbit, scroll to zoom (with sensible limits).
+Keyboard: Spacebar freezes/unfreezes time, R resets the scene elegantly.
+
+Animation &amp; Atmosphere:
+Continuous gentle rotation of all major elements with different periods.
+Breathing / pulsing scale on the core.
+Soft particle systems (dust, energy sparks, distant stars).
+Subtle camera drift when idle.
+
+Visual Polish:
+Beautiful color palette (deep space blues, ethereal golds, soft cyan accents).
+Responsive design — works on desktop and mobile (touch controls).
+Loading screen with a minimal progress indicator that fades out elegantly.
+Clean typography for any 3D or 2D UI text (use a system font stack or a single Google Font via CDN).
+
+Performance &amp; Quality:
+Target 60 fps on modern hardware.
+Use instancing or efficient geometry where possible.
+Proper disposal of objects if the scene is reset.
+No console errors.
+
+
+Experience Goals
+When the page loads, the user should feel they have discovered something ancient and alive. Interaction should feel rewarding and slightly mysterious. The piece should be beautiful enough to leave running as a digital art installation.
+Output Format
+Return only the complete, ready-to-run HTML file. No explanations, no markdown wrappers, no comments outside the code itself (except brief, useful ones inside the JS). The file must open directly in a browser and work immediately.
+Make it exceptional. Push the limits of what a single-file Three.js experience can be.</pre>
+      </details>
     </section>
 
     <footer>
