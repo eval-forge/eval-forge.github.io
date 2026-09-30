@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eval forge</title>
+  <meta name="description" content="Explore eval forge’s AI model tests, original prompts, and results. Test #1: Orbital Relic, a Three.js comparison.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2096%20100%22%20fill%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22forge-blue%22%20x1%3D%2215%22%20y1%3D%2212%22%20x2%3D%2280%22%20y2%3D%2285%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2355c5ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232e50ed%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20x%3D%2239%22%20y%3D%2224%22%20width%3D%2219%22%20height%3D%2219%22%20rx%3D%224%22%20fill%3D%22%23b6eaff%22%2F%3E%3Crect%20x%3D%2259%22%20y%3D%225%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%232e50ed%22%2F%3E%3Crect%20x%3D%2270%22%20y%3D%2229%22%20width%3D%2210%22%20height%3D%2210%22%20rx%3D%222.5%22%20fill%3D%22%2343b7ff%22%2F%3E%3Crect%20x%3D%2225%22%20y%3D%2239%22%20width%3D%2211%22%20height%3D%2211%22%20rx%3D%222.5%22%20fill%3D%22%2382d8ff%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2244%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%223%22%20fill%3D%22%23419aff%22%2F%3E%3Crect%20x%3D%2231%22%20y%3D%2217%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.7%22%20fill%3D%22%23b6eaff%22%2F%3E%3Cpath%20d%3D%22M9%2061h78c-4%208-11%2012-21%2016-5%202-7%205-7%209%200%203%202%206%207%209H31c5-4%207-7%207-11%200-5-4-8-12-10-7-2-13-6-17-13Z%22%20fill%3D%22url%28%23forge-blue%29%22%2F%3E%3Cpath%20d%3D%22M9%2061h78l-33%208c-7%202-11%206-13%2012-2-4-7-6-15-7-7-2-13-6-17-13Z%22%20fill%3D%22%23d4eeff%22%20opacity%3D%22.72%22%2F%3E%3C%2Fsvg%3E">
+  <style>
+    :root { color-scheme: light; --ink: #181a20; --muted: #606571; --line: #e4e6ec; --blue: #2e50ed; --paper: #f7f8fb; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body { margin: 0; background: #fff; color: var(--ink); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 3px solid var(--blue); outline-offset: 5px; }
+    ::selection { background: #e0e7ff; }
+    .wrap { width: min(1120px, calc(100% - 96px)); margin-inline: auto; }
+    .nav { display: flex; justify-content: space-between; align-items: center; padding-block: 28px; border-bottom: 1px solid var(--line); }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 750; letter-spacing: -.6px; }
+    .mark { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; }
+    .mark svg { width: 100%; height: 100%; }
+    .nav-links { display: flex; align-items: center; gap: 30px; font-size: 13px; font-weight: 550; }
+    .nav-links a:hover, footer a:hover { color: var(--blue); }
+    .hero { padding: 76px 0 72px; display: grid; grid-template-columns: 1fr 260px; align-items: center; gap: 40px; }
+    .eyebrow { font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 20px; }
+    .eyebrow::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); margin-right: 10px; }
+    h1 { font-size: clamp(56px, 7vw, 88px); letter-spacing: -.075em; line-height: 1.03; margin: 0 0 25px; font-weight: 650; }
+    .intro { max-width: 540px; font-size: 18px; line-height: 1.65; color: var(--muted); margin: 0; letter-spacing: -.2px; }
+    .orbit { width: 250px; height: 250px; color: var(--blue); }
+    .section-heading { display: flex; justify-content: space-between; align-items: center; padding-block: 18px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+    .section-heading h2 { margin: 0; font-size: 12px; font-weight: 650; letter-spacing: 1.5px; text-transform: uppercase; }
+    .section-heading span { color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .test { padding-bottom: 64px; }
+    .test-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; cursor: pointer; list-style: none; border-radius: 6px; }
+    .test-heading::-webkit-details-marker { display: none; }
+    .test-heading::marker { content: ""; }
+    .test-heading:focus-visible { outline: 3px solid var(--blue); outline-offset: 7px; }
+    .test-heading h3 { margin: 0; }
+    .test-controls { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+    .test-toggle { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+    .test-toggle svg { width: 18px; height: 18px; transition: transform .18s; }
+    .test[open] .test-toggle svg { transform: rotate(180deg); }
+    .test-heading:hover .test-toggle { color: var(--blue); }
+    .collapse-label, .test[open] .expand-label { display: none; }
+    .test[open] .collapse-label { display: inline; }
+    .test-content { padding-top: 15px; }
+    .test-content .test-description { margin-bottom: 28px; }
+    h3 { margin: 0 0 12px; font-size: clamp(24px, 3vw, 34px); font-weight: 600; line-height: 1.2; letter-spacing: -1.3px; }
+    .test-description { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 650px; margin: 0; }
+    .tag { border: 1px solid var(--line); border-radius: 30px; padding: 7px 12px; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; margin-top: 3px; }
+    .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .result { padding: 24px; border: 1px solid var(--line); border-radius: 12px; transition: border-color .18s, transform .18s, box-shadow .18s; display: flex; flex-direction: column; min-height: 205px; }
+    .result:hover { transform: translateY(-3px); border-color: #adbafa; box-shadow: 0 10px 24px #182b6410; }
+    .result-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 27px; }
+    .provider { font-size: 11px; font-weight: 550; letter-spacing: .9px; text-transform: uppercase; color: var(--muted); }
+    .index { color: #a1a5af; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    h4 { font-size: 21px; letter-spacing: -.7px; line-height: 1.2; font-weight: 600; margin: 0 0 8px; }
+    .setting { font-size: 12px; color: var(--muted); margin: 0 0 28px; }
+    .result-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; color: var(--blue); font-size: 13px; font-weight: 600; }
+    .arrow { font-size: 21px; font-weight: 400; line-height: 1; }
+    .prompt { margin-top: 32px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .prompt-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 19px 24px; border-bottom: 1px solid var(--line); }
+    .prompt-heading h4 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: 0; }
+    .prompt-heading span { color: var(--muted); font-size: 11px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 27px 32px 32px; font: 12px/1.85 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #4a505e; tab-size: 2; }
+    footer { border-top: 1px solid var(--line); padding: 26px 0 34px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+    footer strong { color: var(--ink); font-weight: 600; }
+    .skip { position: absolute; top: -100px; left: 20px; padding: 12px; background: #fff; z-index: 1; }
+    .skip:focus { top: 12px; }
+    @media (max-width: 800px) {
+      .wrap { width: calc(100% - 48px); }
+      .hero { grid-template-columns: 1fr 150px; padding-block: 55px; gap: 16px; }
+      .orbit { width: 150px; height: 150px; }
+      .intro { font-size: 16px; }
+      .result { padding: 19px; }
+      h4 { font-size: 19px; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 40px); }
+      .nav { padding-block: 22px; }
+      .nav-links { gap: 20px; font-size: 12px; }
+      .hero { grid-template-columns: 1fr; padding-block: 48px; }
+      .orbit { display: none; }
+      h1 { font-size: 60px; }
+      .results { grid-template-columns: 1fr; gap: 12px; }
+      .result { min-height: 180px; padding: 22px; }
+      .result-top { margin-bottom: 19px; }
+      .setting { margin-bottom: 22px; }
+      .test-heading { flex-direction: column; align-items: stretch; gap: 15px; }
+      .test-controls { justify-content: space-between; }
+      .prompt-heading { padding: 18px 20px; }
+      pre { padding: 22px 20px; font-size: 11px; }
+      footer { gap: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .result, .test-toggle svg { transition: none; } .result:hover { transform: none; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#tests">Skip to tests</a>
+  <div class="wrap">
+    <header class="nav">
+      <a class="brand" href="#" aria-label="eval forge home"><span class="mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 100" fill="none"><defs><linearGradient id="forge-blue" x1="15" y1="12" x2="80" y2="85" gradientUnits="userSpaceOnUse"><stop stop-color="#55c5ff"/><stop offset="1" stop-color="#2e50ed"/></linearGradient></defs><rect x="39" y="24" width="19" height="19" rx="4" fill="#b6eaff"/><rect x="59" y="5" width="12" height="12" rx="3" fill="#2e50ed"/><rect x="70" y="29" width="10" height="10" rx="2.5" fill="#43b7ff"/><rect x="25" y="39" width="11" height="11" rx="2.5" fill="#82d8ff"/><rect x="60" y="44" width="12" height="12" rx="3" fill="#419aff"/><rect x="31" y="17" width="6" height="6" rx="1.7" fill="#b6eaff"/><path d="M9 61h78c-4 8-11 12-21 16-5 2-7 5-7 9 0 3 2 6 7 9H31c5-4 7-7 7-11 0-5-4-8-12-10-7-2-13-6-17-13Z" fill="url(#forge-blue)"/><path d="M9 61h78l-33 8c-7 2-11 6-13 12-2-4-7-6-15-7-7-2-13-6-17-13Z" fill="#d4eeff" opacity=".72"/></svg></span>eval forge</a>
+      <nav class="nav-links" aria-label="Main navigation"><a href="#tests">Tests</a><a href="https://github.com/eval-forge">GitHub <span aria-hidden="true">↗</span></a></nav>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="home-title">
+        <div>
+          <p class="eyebrow">AI model evaluations</p>
+          <h1 id="home-title">eval forge<span style="color:var(--blue)">.</span></h1>
+          <p class="intro">Putting AI models to the test.<br>Explore the prompts. Compare the results.</p>
+        </div>
+        <svg class="orbit" viewBox="0 0 96 100" fill="none" aria-hidden="true"><defs><linearGradient id="hero-blue" x1="15" y1="12" x2="80" y2="85" gradientUnits="userSpaceOnUse"><stop stop-color="#55c5ff"/><stop offset="1" stop-color="#2e50ed"/></linearGradient></defs><rect x="39" y="24" width="19" height="19" rx="4" fill="#b6eaff"/><rect x="59" y="5" width="12" height="12" rx="3" fill="#2e50ed"/><rect x="70" y="29" width="10" height="10" rx="2.5" fill="#43b7ff"/><rect x="25" y="39" width="11" height="11" rx="2.5" fill="#82d8ff"/><rect x="60" y="44" width="12" height="12" rx="3" fill="#419aff"/><rect x="31" y="17" width="6" height="6" rx="1.7" fill="#b6eaff"/><path d="M9 61h78c-4 8-11 12-21 16-5 2-7 5-7 9 0 3 2 6 7 9H31c5-4 7-7 7-11 0-5-4-8-12-10-7-2-13-6-17-13Z" fill="url(#hero-blue)"/><path d="M9 61h78l-33 8c-7 2-11 6-13 12-2-4-7-6-15-7-7-2-13-6-17-13Z" fill="#d4eeff" opacity=".72"/></svg>
+      </section>
+      <section id="tests" aria-labelledby="tests-title">
+        <div class="section-heading"><h2 id="tests-title">The tests</h2><span>001 / Three.js</span></div>
+        <details class="test" open>
+          <summary class="test-heading">
+            <h3 id="test-title">Test #1 — Orbital Relic</h3>
+            <span class="test-controls"><span class="tag">Creative coding</span><span class="test-toggle"><span class="collapse-label">Collapse</span><span class="expand-label">Expand</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+          </summary>
+          <div class="test-content">
+          <p class="test-description">An interactive 3D artifact from a lost civilization, built in a single HTML file. The same prompt, given to three models.</p>
+          <div class="results" aria-label="Model results">
+            <a class="result" href="https://eval-forge.github.io/threejs-opus-5-5" aria-label="View Claude Opus 5.5 result">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">01</span></div>
+              <h4>Claude Opus 5.5</h4><p class="setting">on high mode</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a class="result" href="https://eval-forge.github.io/threejs-astra-6" aria-label="View GPT-6 Astra result">
+              <div class="result-top"><span class="provider">OpenAI</span><span class="index">02</span></div>
+              <h4>GPT-6 Astra</h4><p class="setting">on high mode</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a class="result" href="https://eval-forge.github.io/threejs-sonnet-5-5" aria-label="View Claude Sonnet 5.5 result">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">03</span></div>
+              <h4>Claude Sonnet 5.5</h4><p class="setting">on high mode</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+          </div>
+          <section class="prompt" aria-labelledby="prompt-title">
+            <div class="prompt-heading"><h4 id="prompt-title">The original prompt</h4><span>Same prompt · All three models</span></div>
+            <pre>You are a world-class creative technologist and Three.js expert. Your task is to create a complete, self-contained, production-quality interactive 3D experience in a single HTML file.
+Core Concept
+Build an immersive “Orbital Relic” — a procedurally generated, fully interactive 3D artifact that feels like a living museum piece from a lost civilization. The experience must combine:
+
+A central floating relic (a complex, multi-layered geometric structure made of nested, rotating rings, crystalline cores, and energy filaments).
+An orbiting planetary system of 5–7 smaller celestial bodies that react to the user’s actions.
+Atmospheric particle systems, volumetric-style lighting, and subtle post-processing.
+A sense of discovery, scale, and quiet wonder.
+
+Technical Requirements (all mandatory)
+
+Single self-contained HTML file — no external files. Use only Three.js (latest via CDN) and optionally one additional lightweight library (e.g., GSAP or a small post-processing helper) if needed. Everything else must be pure JavaScript.
+Full 3D scene with:
+Perspective camera + smooth OrbitControls (with damping).
+Physically-based lighting (at least one key directional light + ambient + several colored point lights that pulse).
+Soft shadows and contact shadows where appropriate.
+High-quality materials (MeshStandardMaterial / MeshPhysicalMaterial with transmission, iridescence, or clearcoat on the central relic).
+
+Procedural generation:
+The central relic and its orbiting bodies must be generated algorithmically (no hardcoded vertex lists for the main structures). Use mathematical functions, noise, or recursive geometry.
+
+Interactivity (all required):
+Click / tap any orbiting body → it expands into a detailed holographic information panel floating in 3D space (with title, short lore text, and animated data visualization).
+Double-click the central relic → triggers a dramatic transformation sequence (rings expand, core pulses, particles erupt, camera slowly pulls back).
+Mouse / touch drag to orbit, scroll to zoom (with sensible limits).
+Keyboard: Spacebar freezes/unfreezes time, R resets the scene elegantly.
+
+Animation &amp; Atmosphere:
+Continuous gentle rotation of all major elements with different periods.
+Breathing / pulsing scale on the core.
+Soft particle systems (dust, energy sparks, distant stars).
+Subtle camera drift when idle.
+
+Visual Polish:
+Beautiful color palette (deep space blues, ethereal golds, soft cyan accents).
+Responsive design — works on desktop and mobile (touch controls).
+Loading screen with a minimal progress indicator that fades out elegantly.
+Clean typography for any 3D or 2D UI text (use a system font stack or a single Google Font via CDN).
+
+Performance &amp; Quality:
+Target 60 fps on modern hardware.
+Use instancing or efficient geometry where possible.
+Proper disposal of objects if the scene is reset.
+No console errors.
+
+
+Experience Goals
+When the page loads, the user should feel they have discovered something ancient and alive. Interaction should feel rewarding and slightly mysterious. The piece should be beautiful enough to leave running as a digital art installation.
+Output Format
+Return only the complete, ready-to-run HTML file. No explanations, no markdown wrappers, no comments outside the code itself (except brief, useful ones inside the JS). The file must open directly in a browser and work immediately.
+Make it exceptional. Push the limits of what a single-file Three.js experience can be.</pre>
+          </section>
+          </div>
+        </details>
+      </section>
+    </main>
+    <footer><strong>eval forge</strong><a href="https://github.com/eval-forge">Find us on GitHub <span aria-hidden="true">↗</span></a></footer>
+  </div>
+</body>
+</html>
