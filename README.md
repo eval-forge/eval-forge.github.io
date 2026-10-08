@@ -28,7 +28,7 @@ The site is a static page (plain HTML, no build step), hosted on GitHub Pages.
 | #   | Test                  | Category         | Models                                              |
 | --- | --------------------- | ---------------- | --------------------------------------------------- |
 | 1   | Orbital Relic         | Creative coding  | Claude Opus 5.5, GPT-6 Astra, Claude Sonnet 5.5     |
-| 2   | Lighthouse Cove       | _Coming soon_    | _Being added_                                       |
+| 2   | Lighthouse Cove       | Voxel / Three.js | GPT-6 Astra, GPT-6.1 Sol, GPT-5.6 Sol, and 5 more   |
 
 Each test shows the original prompt in full, so you can read exactly what every model was asked to build.
 
