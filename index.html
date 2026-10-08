@@ -62,6 +62,12 @@
     .prompt-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 19px 24px; border-bottom: 1px solid var(--line); }
     .prompt-heading h4 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: 0; }
     .prompt-heading span { color: var(--muted); font-size: 11px; }
+    .prompt-heading { cursor: pointer; list-style: none; }
+    .prompt-heading::-webkit-details-marker { display: none; }
+    .prompt-controls { display: inline-flex; align-items: center; gap: 7px; }
+    .prompt-controls svg { width: 18px; height: 18px; transition: transform .18s; }
+    .prompt[open] .prompt-controls svg { transform: rotate(180deg); }
+    .prompt:not([open]) .prompt-heading { border-bottom: 0; }
     pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 27px 32px 32px; font: 12px/1.85 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #4a505e; tab-size: 2; }
     footer { border-top: 1px solid var(--line); padding: 26px 0 34px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
     footer strong { color: var(--ink); font-weight: 600; }
@@ -137,8 +143,8 @@
               <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
             </a>
           </div>
-          <section class="prompt" aria-labelledby="prompt-title">
-            <div class="prompt-heading"><h4 id="prompt-title">The original prompt</h4><span>Same prompt · All three models</span></div>
+          <details class="prompt" open>
+            <summary class="prompt-heading"><h4 id="prompt-title">The original prompt</h4><span class="prompt-controls">Same prompt · All three models<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
             <pre>You are a world-class creative technologist and Three.js expert. Your task is to create a complete, self-contained, production-quality interactive 3D experience in a single HTML file.
 Core Concept
 Build an immersive “Orbital Relic” — a procedurally generated, fully interactive 3D artifact that feels like a living museum piece from a lost civilization. The experience must combine:
@@ -190,7 +196,7 @@ When the page loads, the user should feel they have discovered something ancient
 Output Format
 Return only the complete, ready-to-run HTML file. No explanations, no markdown wrappers, no comments outside the code itself (except brief, useful ones inside the JS). The file must open directly in a browser and work immediately.
 Make it exceptional. Push the limits of what a single-file Three.js experience can be.</pre>
-          </section>
+          </details>
           </div>
         </details>
       </section>
