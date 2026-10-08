@@ -226,7 +226,29 @@ Make it exceptional. Push the limits of what a single-file Three.js experience c
           <p class="test-description">Top three shown. The full ranking of all eight entries, with live previews, is on the <a href="https://eval-forge.github.io/gpt-battle">Battle of the GPTs page</a>.</p>
           <details class="prompt" open>
             <summary class="prompt-heading"><h4 id="prompt-title-2">The original prompt</h4><span class="prompt-controls">Same prompt · All eight models<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-            <pre>[Original prompt to be added.]</pre>
+            <pre>Build a single-file HTML page using Three.js (load from cdnjs) that renders an interactive 3D voxel scene: "Lighthouse Cove".
+
+Scene:
+- A floating island with sandy beaches on one side, grassy cliffs on the other, and a jagged rocky underside with waterfalls spilling off the edge into the void
+- A tall striped lighthouse on the cliff with a rotating beam of light
+- A tiny fishing village: 4 to 5 colorful cottages, a wooden dock, two little sailboats bobbing in a voxel water pool
+- Palm trees, bushes, flower patches, barrels, crates, a campfire with animated flickering
+- 3 small floating islets nearby, each with its own mini scene (one with a lone tree, one with a stack of treasure chests)
+- Seagulls (simple voxel birds) circling the lighthouse
+
+Visuals:
+- Sunset sky gradient, blocky clouds drifting, warm directional light with soft shadows, light fog
+- InstancedMesh for performance, subtle per-voxel color variation so nothing looks flat
+- Water with gentle animated color shimmer
+
+Interaction:
+- Drag to rotate, scroll to zoom, auto-rotate when idle
+- UI overlay with a title card top left and buttons for day/night, auto-rotate, and a toggle for the lighthouse beam
+- Night mode: starry sky, glowing windows, the lighthouse beam becomes the main light source
+
+Generate everything procedurally with helper functions (addCottage(), addPalmTree(), addBoat()). Make it dense, polished, and smooth at 60fps. Output the complete working code.
+At the top, add a small black bar with [Which model], [Date], [Total time to finish], and at the very right side of the black topbar, add a link saying Back to Eval Forge homepage (https://eval-forge.github.io)
+Make this all into one single contained HTML file that I can download from the chat right here.</pre>
           </details>
           </div>
         </details>
