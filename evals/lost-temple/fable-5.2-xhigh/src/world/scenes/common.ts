@@ -5,7 +5,7 @@ import { muralTexture, type Glyph } from '../../engine/textures';
 import { RAPIER } from '../../engine/physics';
 import { Sconce } from '../entities/env';
 import { Supply } from '../entities/relics';
-import type { SceneKit } from '../kit';
+import type { BoxOpts, SceneKit } from '../kit';
 
 const _m = new THREE.Matrix4();
 const _q = new THREE.Quaternion();
@@ -162,5 +162,34 @@ export function canopyGeometry(): THREE.BufferGeometry {
 export const leafTint = (hue: number, c: THREE.Color): void => {
   c.setRGB(0.75 + hue * 0.5, 0.85 + hue * 0.3, 0.7 + hue * 0.35);
 };
+
+export interface Rect {
+  x0: number;
+  z0: number;
+  x1: number;
+  z1: number;
+}
+
+/** A horizontal slab with rectangular holes cut out of it (roofs with skylights, floors with pits). */
+export function slabWithHoles(
+  k: SceneKit, x0: number, z0: number, x1: number, z1: number, y0: number, y1: number, mat: string, holes: Rect[], o: BoxOpts = {},
+): void {
+  const cuts = (lo: number, hi: number, vals: number[]): number[] =>
+    [...new Set([lo, hi, ...vals.filter((v) => v > lo && v < hi)])].sort((a, b) => a - b);
+  const xs = cuts(x0, x1, holes.flatMap((h) => [h.x0, h.x1]));
+  const zs = cuts(z0, z1, holes.flatMap((h) => [h.z0, h.z1]));
+  const inHole = (x: number, z: number): boolean => holes.some((h) => x > h.x0 && x < h.x1 && z > h.z0 && z < h.z1);
+  for (let j = 0; j < zs.length - 1; j++) {
+    let runStart: number | null = null;
+    for (let i = 0; i <= xs.length - 1; i++) {
+      const open = i < xs.length - 1 && !inHole((xs[i] + xs[i + 1]) / 2, (zs[j] + zs[j + 1]) / 2);
+      if (open && runStart === null) runStart = xs[i];
+      if (!open && runStart !== null) {
+        k.box(runStart, y0, zs[j], xs[i], y1, zs[j + 1], mat, o);
+        runStart = null;
+      }
+    }
+  }
+}
 
 export type { Vec3Like };
