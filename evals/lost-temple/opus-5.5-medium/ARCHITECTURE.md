@@ -66,7 +66,7 @@ At startup every chunk is loaded once so the nav graph can be baked by raycastin
 
 ## Guardians and navigation
 
-`NavGraph` is baked once by casting rays down a 1 m grid inside each chunk's AABB (each chunk supplies its own ray start height so stacked areas work). Walkable cells with headroom become nodes. Neighbours connect if the height step is < 0.6 m. A* with an octile heuristic, then line-of-sight string pulling. Doors and gates toggle node blocking at runtime. Guardians are kinematic agents moved along nav paths (no physics bodies), so they keep working in unloaded chunks and are just hidden there.
+`NavGraph` is baked once by scanning each column of a 1 m grid inside each chunk's nav regions with repeated hollow downward raycasts, so every upward-facing surface in the column (ground, stairs, lower levels under ceilings) is a candidate. Walkable cells with 1.7 m headroom and wall clearance become nodes. Neighbours connect if the height step is ≤ 1.25 m (steep stairs at 1 m cells) and no wall ray hits between them. A* with an octile heuristic, then line-of-sight string pulling. Doors and gates toggle node blocking at runtime. Guardians are kinematic agents moved along nav paths (no physics bodies), so they keep working in unloaded chunks and are just hidden there.
 
 ## Testability
 
