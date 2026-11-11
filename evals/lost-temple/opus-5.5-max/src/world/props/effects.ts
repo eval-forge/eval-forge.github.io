@@ -58,7 +58,8 @@ export class SunShaft implements Prop {
     this.lit += (this.target - this.lit) * Math.min(1, dt * 1.5);
     const elevK = Math.min(1, Math.max(0, (d.y - 0.08) / 0.4));
     const intensity = this.lit * elevK * 0.32 * this.strength;
-    this.mesh.visible = intensity > 0.004;
+    // from inside zone C even a distant sunbeam would be light that is not fire: hide it
+    this.mesh.visible = intensity > 0.004 && !this.ctx.cameraDark();
     if (!this.mesh.visible) return;
     this.mat.uniforms.uIntensity.value = intensity;
     this.mat.uniforms.uTime.value = this.ctx.time();
