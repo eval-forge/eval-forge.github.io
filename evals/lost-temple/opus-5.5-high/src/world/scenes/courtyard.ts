@@ -46,6 +46,7 @@ export const courtyard: SceneDef = {
 
     // ------------------------------------------------ temple facade (z 6..10)
     b.wallZ(7.5, -36, 36, 0, 14, 'sandstone', 3, [[-3, 3, 7.5]]);
+    b.floor(-3.4, 5.9, 3.4, 9.1, 0, 'flag'); // threshold under the great door
     // stepped crown above the facade
     b.aabb(-30, 14, 6, 30, 17, 9, 'sandstone');
     b.aabb(-20, 17, 6.5, 20, 20, 8.5, 'sandstone');
@@ -137,7 +138,7 @@ export const courtyard: SceneDef = {
     });
     rt.interact({
       pos: new THREE.Vector3(0, 1, 12.5), radius: 2.6,
-      prompt: () => (ctx.player.feet.z > 10.5 ? `E: leave the temple and end the run (haul ${run.carriedValue})` : null),
+      prompt: () => (run.flags.doorOpened && ctx.player.feet.z > 10.5 ? `E: leave the temple and end the run (haul ${run.carriedValue})` : null),
       act: () => ctx.escape(),
     });
     rt.every(() => {

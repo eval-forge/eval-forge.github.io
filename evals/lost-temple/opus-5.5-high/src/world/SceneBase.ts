@@ -49,7 +49,7 @@ export function looseRelics(scene: SceneId, seed: number, spots: [number, number
   });
 }
 
-interface Attachable { attach(): void; detach(): void; update(dt: number): void }
+interface Attachable { attach?(): void; detach?(): void; update?(dt: number): void }
 
 /** Helper handed to SceneDef.spawn: registers entities that follow the scene's lifetime. */
 export class RuntimeKit implements SceneRuntime {
@@ -59,14 +59,14 @@ export class RuntimeKit implements SceneRuntime {
   private detachers: (() => void)[] = [];
   sconces: Sconce[] = [];
   constructor(public ctx: SceneCtx, public sceneId: SceneId) {}
-  add<T extends Attachable>(a: T): T { this.items.push(a); a.attach(); return a; }
+  add<T extends Attachable>(a: T): T { this.items.push(a); a.attach?.(); return a; }
   every(fn: (dt: number) => void) { this.updaters.push(fn); }
   onDetach(fn: () => void) { this.detachers.push(fn); }
   interact(i: Interactable) { this.interactables.push(i); return i; }
   object(o: THREE.Object3D) { this.ctx.scene.add(o); this.onDetach(() => this.ctx.scene.remove(o)); return o; }
-  update(dt: number) { for (const a of this.items) a.update(dt); for (const u of this.updaters) u(dt); }
+  update(dt: number) { for (const a of this.items) a.update?.(dt); for (const u of this.updaters) u(dt); }
   detach() {
-    for (const a of this.items) a.detach();
+    for (const a of this.items) a.detach?.();
     for (const d of this.detachers) d();
     for (const s of this.sconces) {
       this.ctx.run().entities.set('sconce:' + s.id, { burn: s.burn, at: this.ctx.run().elapsed });

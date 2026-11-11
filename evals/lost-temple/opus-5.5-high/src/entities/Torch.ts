@@ -32,27 +32,27 @@ export class PlayerTorch {
     scene.add(this.light);
 
     this.view = new THREE.Group();
-    const stickMat = mats.get('bark');
+    const stickMat = new THREE.MeshBasicMaterial({ color: 0x2a1c10, map: mats.get('bark').map, fog: false }); // unlit: the flame sits right on it
     this.stick = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.022, 0.62, 8), stickMat);
     this.stick.rotation.x = -0.35;
     this.stick.position.set(0, -0.12, 0);
-    const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.12, 8), mats.get('cloth'));
+    const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.032, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0x4a2a14, fog: false }));
     wrap.position.set(0, 0.17, 0.06);
     wrap.rotation.x = -0.35;
     this.view.add(this.stick, wrap);
     this.flame = flameSprite(tex.flame, 0.32);
-    this.flame.position.set(0, 0.34, 0.1);
+    this.flame.position.set(0, 0.26, 0.08);
     this.flame2 = flameSprite(tex.flame, 0.2);
-    this.flame2.position.set(0.01, 0.3, 0.1);
+    this.flame2.position.set(0.01, 0.24, 0.08);
     this.view.add(this.flame, this.flame2);
     // embers
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(24 * 3), 3));
-    this.embers = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffa040, size: 0.012, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
+    this.embers = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffa040, size: 0.005, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
     this.embers.frustumCulled = false;
     this.view.add(this.embers);
     for (let i = 0; i < 24; i++) this.emberData.push({ p: new THREE.Vector3(0, 0.3, 0.1), v: new THREE.Vector3(), life: Math.random() });
-    this.view.position.set(0.32, -0.3, -0.52);
+    this.view.position.set(0.36, -0.4, -0.62);
     this.view.traverse((o) => { o.castShadow = false; o.renderOrder = 10; });
     camera.add(this.view);
   }
@@ -77,7 +77,7 @@ export class PlayerTorch {
     this.light.distance = r;
     this.light.intensity = lit ? 22 * Math.pow(Math.max(radius, 1) / 8, 1.6) * f * this.litAmount : 0;
     // light sits at the torch head in world space
-    const head = new THREE.Vector3(0.3, -0.02, -0.55);
+    const head = new THREE.Vector3(0.36, -0.1, -0.55);
     head.applyMatrix4(camera.matrixWorld);
     this.light.position.copy(head);
     this.light.shadow.camera.far = Math.max(1, r);
@@ -85,17 +85,17 @@ export class PlayerTorch {
     this.view.visible = visible;
     const s = 0.75 + 0.25 * f;
     this.flame.visible = this.flame2.visible = lit;
-    this.flame.scale.set(0.2 * s * (radius / 8 * 0.4 + 0.6), 0.34 * s * (radius / 8 * 0.4 + 0.6), 1);
-    this.flame2.scale.set(0.12 * s, 0.22 * (2 - s), 1);
+    this.flame.scale.set(0.085 * s * (radius / 8 * 0.4 + 0.6), 0.15 * s * (radius / 8 * 0.4 + 0.6), 1);
+    this.flame2.scale.set(0.05 * s, 0.09 * (2 - s), 1);
     this.flame.material.rotation = Math.sin(time * 7) * 0.08;
     // relight animation: bring the torch up to the face and strike
     const bob = Math.sin(time * 1.7) * 0.01 + sway;
     if (relight >= 0) {
       const k = Math.sin(relight * Math.PI);
-      this.view.position.set(0.32 - k * 0.2, -0.3 + k * 0.15 + Math.sin(relight * 40) * 0.01 * k, -0.52);
+      this.view.position.set(0.36 - k * 0.2, -0.4 + k * 0.15 + Math.sin(relight * 40) * 0.01 * k, -0.62);
       this.view.rotation.z = k * 0.6;
     } else {
-      this.view.position.set(0.32, -0.3 + bob, -0.52);
+      this.view.position.set(0.36, -0.4 + bob, -0.62);
       this.view.rotation.z = 0;
     }
     // embers
@@ -105,8 +105,8 @@ export class PlayerTorch {
       e.life -= dt * 1.5;
       if (e.life <= 0) {
         e.life = 0.6 + Math.random() * 0.6;
-        e.p.set((Math.random() - 0.5) * 0.04, 0.32, 0.1);
-        e.v.set((Math.random() - 0.5) * 0.08, 0.25 + Math.random() * 0.25, (Math.random() - 0.5) * 0.05);
+        e.p.set((Math.random() - 0.5) * 0.03, 0.27, 0.08);
+        e.v.set((Math.random() - 0.5) * 0.04, 0.06 + Math.random() * 0.08, (Math.random() - 0.5) * 0.03);
       }
       e.p.addScaledVector(e.v, dt);
       pos.setXYZ(i, e.p.x, lit ? e.p.y : -100, e.p.z);

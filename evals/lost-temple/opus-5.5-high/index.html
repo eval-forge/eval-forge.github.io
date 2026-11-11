@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Lost Temple</title>
+  <link rel="stylesheet" href="./src/ui/styles.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="edge"></div>
+
+  <div id="hud" style="display:none">
+    <div id="dialBox">
+      <canvas id="sundial" width="132" height="132"></canvas>
+      <div id="clockText" class="day">13:00</div>
+    </div>
+    <div id="sceneTitle"></div>
+    <div id="objective"></div>
+    <div id="loot"><span class="lbl">HAUL</span><span id="lootValue">0</span></div>
+    <div id="bars">
+      <div class="bar"><div class="lbl">HEALTH</div><div class="track"><div id="healthFill" class="fill health"></div></div></div>
+      <div class="bar"><div class="lbl">STAMINA</div><div class="track"><div id="staminaFill" class="fill stamina"></div></div></div>
+      <div class="bar"><div class="lbl" id="fuelLabel">TORCH</div><div class="track"><div id="fuelFill" class="fill fuel"></div></div></div>
+      <div class="bar"><div class="lbl" id="weightLabel">SATCHEL</div><div class="track"><div id="weightFill" class="fill weight"></div></div></div>
+      <div id="spares">Spare torches: 1</div>
+    </div>
+    <div id="crosshair"></div>
+    <div id="prompt"></div>
+    <div id="held"></div>
+    <div id="message"></div>
+    <div id="lockHint">Click to look around</div>
+  </div>
+
+  <div id="map" style="display:none">
+    <canvas id="mapCanvas" width="900" height="900"></canvas>
+    <div class="mapHint">M to close · the clock keeps running</div>
+  </div>
+
+  <div id="menu"></div>
+  <pre id="debug" style="display:none"></pre>
+  <div id="loading"><div class="ltitle">THE LOST TEMPLE</div><div id="loadText">Carving stone…</div></div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

@@ -149,6 +149,6 @@ export const jungle: SceneDef = {
     ];
   },
   spawn(ctx, rt) {
-    rt.add(new RopeBridge(ctx, 'bridge_gorge', new THREE.Vector3(0, 0, GORGE1 + 0.6), new THREE.Vector3(0, 0, GORGE0 - 0.6), 1.8, 0.8));
+    rt.add(new RopeBridge(ctx, 'bridge_gorge', new THREE.Vector3(0, 0.12, GORGE1 - 1.0), new THREE.Vector3(0, 0.12, GORGE0 + 1.0), 1.8, 0.8));
   },
 };
