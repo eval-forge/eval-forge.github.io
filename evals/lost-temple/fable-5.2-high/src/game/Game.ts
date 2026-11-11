@@ -373,7 +373,7 @@ export class Game {
       this.world.onNight();
       this.audio.play('gong', { vol: 1 }); this.audio.play('rumble', { vol: 1 });
       this.shake(0.9);
-      this.toast(this.inside ? 'Darkness. The guardians are awake and the Great Door is closing. You have one minute.' : 'Darkness. The Great Door is closing.');
+      this.toast(this.inside ? 'Darkness. The guardians are awake and the Great Door is coming down. Under a minute. Duck under it if you must.' : 'Darkness. The Great Door is closing.');
     } else if (ev === 'doorSealed') {
       run.progress.doorSealed = true;
       this.audio.play('thud', { vol: 1 }); this.shake(0.8);

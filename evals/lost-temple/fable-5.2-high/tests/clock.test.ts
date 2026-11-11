@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  DAY_LENGTH, ENTOMB_DELAY, FINAL_WINDOW, doorClosedFraction, dreadLevel, eventsBetween, formatTime, phaseAt,
+  CROUCH_CLEARANCE, DAY_LENGTH, DOOR_HEIGHT, ENTOMB_DELAY, FINAL_WINDOW, STAND_CLEARANCE, doorClosedFraction, doorPassableFor, dreadLevel, eventsBetween, formatTime, phaseAt,
   sundialShadowAngle, tickInterval, tickVolume, timeLeft,
 } from '../src/core/clock';
 
@@ -79,9 +79,19 @@ describe('last minute and the door', () => {
   });
   it('keeps the door open all day, then closes it over the final window', () => {
     expect(doorClosedFraction(DAY_LENGTH - 1)).toBe(0);
-    expect(doorClosedFraction(DAY_LENGTH + FINAL_WINDOW / 2)).toBeCloseTo(0.5);
     expect(doorClosedFraction(DAY_LENGTH + FINAL_WINDOW)).toBe(1);
     expect(doorClosedFraction(DAY_LENGTH + 999)).toBe(1);
+    let prev = 0;
+    for (let s = 0; s <= FINAL_WINDOW; s++) { const f = doorClosedFraction(DAY_LENGTH + s); expect(f).toBeGreaterThanOrEqual(prev); prev = f; }
+  });
+  it('leaves most of the final window usable: walk under late, duck under later still', () => {
+    const stand = doorPassableFor(STAND_CLEARANCE), crouch = doorPassableFor(CROUCH_CLEARANCE);
+    expect(stand).toBeGreaterThan(FINAL_WINDOW * 0.8);
+    expect(crouch).toBeGreaterThan(stand + 2);
+    expect(crouch).toBeLessThan(FINAL_WINDOW);
+    // The numbers agree with the curve itself.
+    expect((1 - doorClosedFraction(DAY_LENGTH + stand - 0.5)) * DOOR_HEIGHT).toBeGreaterThan(STAND_CLEARANCE);
+    expect((1 - doorClosedFraction(DAY_LENGTH + stand + 0.5)) * DOOR_HEIGHT).toBeLessThan(STAND_CLEARANCE);
   });
   it('sweeps the sundial shadow over a half circle', () => {
     expect(sundialShadowAngle(0)).toBe(0);

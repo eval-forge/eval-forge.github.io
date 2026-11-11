@@ -58,9 +58,21 @@ export function tickVolume(left: number): number {
   return lerp(1, 0.3, left / TWO_MINUTES);
 }
 
-/** 0 while the door is fully open, 1 when sealed. */
+/** Height of the Great Door's opening and of someone walking or ducking through it, in metres. */
+export const DOOR_HEIGHT = 5, STAND_CLEARANCE = 1.8, CROUCH_CLEARANCE = 1.15;
+
+/**
+ * 0 while the door is fully open, 1 when sealed. It starts slowly and finishes fast, so most of
+ * the final window is usable: you can still walk under it with ten seconds left and slide under
+ * it on your knees a few seconds after that.
+ */
 export function doorClosedFraction(t: number): number {
-  return clamp01((t - DAY_LENGTH) / FINAL_WINDOW);
+  return clamp01((t - DAY_LENGTH) / FINAL_WINDOW) ** 3;
+}
+
+/** Seconds after dark until a gap of the given height is gone. */
+export function doorPassableFor(clearance: number): number {
+  return FINAL_WINDOW * Math.cbrt(clamp01(1 - clearance / DOOR_HEIGHT));
 }
 
 /** Strength 0..1 of the screen-edge pulse and rumble in the last minute. */

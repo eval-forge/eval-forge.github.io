@@ -177,7 +177,7 @@ export class Player {
       const score = (1 - dot) * 6 + d * 0.25 + (it.priority ?? 3) * 0.05;
       if (score < bestScore) { bestScore = score; best = it; }
     }
-    if (best && !game.physics.lineOfSight(eye, _r.copy(best.pos).lerp(eye, 0.15))) best = null;
+    if (best && !best.solid && !game.physics.lineOfSight(eye, _r.copy(best.pos).lerp(eye, 0.15))) best = null;
     this.target = best;
   }
 
@@ -325,7 +325,7 @@ export class Player {
     if (wz) {
       const g = gustStrength(run.time) * wz.strength;
       this.wind = g;
-      const shelter = this.crouching ? 0.22 : 1;
+      const shelter = this.crouching ? 0.07 : 1;
       px += wz.dx * g * 5.2 * shelter; pz += wz.dz * g * 5.2 * shelter;
       if (dousedByWind(g) && douse(run.torch, 'wind')) { game.audio.play('douse'); game.toast('A gust blew your torch out'); }
       if (g > 0.3 && !this.windWarned) { this.windWarned = true; game.toast('Wind! Crouch to keep your footing.'); }
