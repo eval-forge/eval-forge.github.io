@@ -108,12 +108,22 @@ export const vault: SceneDef = {
       dbGroup.quaternion.copy(q);
       body.setNextKinematicRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
     };
-    apply();
+    // once it is down, the deck becomes plain fixed ground (the character controller is happier on fixed bodies)
+    const settle = () => {
+      const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
+      dbGroup.quaternion.copy(q);
+      body.setBodyType(RAPIER.RigidBodyType.Fixed, true);
+      body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
+    };
+    if (angle === 0) settle(); else apply();
     rt.every((dt) => {
       if (Math.abs(target - angle) > 1e-3) {
         angle += Math.sign(target - angle) * Math.min(Math.abs(target - angle), dt * 0.6);
-        apply();
-        if (Math.abs(target - angle) <= 1e-3) { ctx.audio.play('thud', pivot, 1); ctx.shake(0.3); }
+        if (Math.abs(target - angle) <= 1e-3) {
+          angle = target;
+          ctx.audio.play('thud', pivot, 1); ctx.shake(0.3);
+          settle();
+        } else apply();
       }
     });
     rt.add(new Lever(ctx, 'v_drawLever', new THREE.Vector3(-11.5, Y, -199.5), -Math.PI / 2, 'lower the drawbridge', () => {

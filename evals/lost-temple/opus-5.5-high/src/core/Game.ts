@@ -113,6 +113,7 @@ export class Game implements SceneCtx, MenuHost {
   private ghostT = 0;
   private wasLocked = false;
   private lastFrame = performance.now();
+  private realDt = 1 / 60;
   private quality: Profile['settings']['quality'];
   /** Per-scene FPS samples gathered while playing (for the self review). */
   fpsByScene: Record<string, { sum: number; n: number; min: number }> = {};
@@ -317,6 +318,7 @@ export class Game implements SceneCtx, MenuHost {
   damage(amount: number, cause: string, knock?: THREE.Vector3) {
     if (this.mode !== 'play') return;
     const r = this.runState;
+    if (amount < 30 && r.elapsed - this.lastHurt < 0.35) return; // brief grace so a dart volley can't stack-kill
     r.health -= amount;
     this.lastHurt = r.elapsed;
     this.hud.hurt();
@@ -687,7 +689,8 @@ export class Game implements SceneCtx, MenuHost {
   private loop = () => {
     requestAnimationFrame(this.loop);
     const now = performance.now();
-    const frameDt = Math.min(0.1, (now - this.lastFrame) / 1000);
+    this.realDt = (now - this.lastFrame) / 1000;
+    const frameDt = Math.min(0.1, this.realDt);
     this.lastFrame = now;
     this.clock += frameDt;
     this.frame(frameDt);
@@ -788,7 +791,7 @@ export class Game implements SceneCtx, MenuHost {
 
     // fps + debug
     const fp = this.fps;
-    fp.frames++; fp.t += dt; fp.frameMax = Math.max(fp.frameMax, dt);
+    fp.frames++; fp.t += this.realDt; fp.frameMax = Math.max(fp.frameMax, this.realDt);
     if (fp.t >= 0.5) {
       fp.value = fp.frames / fp.t; fp.worst = fp.frameMax; fp.frames = 0; fp.t = 0; fp.frameMax = 0;
       if (this.mode === 'play') {
@@ -853,7 +856,7 @@ export class Game implements SceneCtx, MenuHost {
       mode: this.mode, scene: this.current.id, pos: [f.x, f.y, f.z], remaining: this.remaining(), fps: this.fps.value, health: this.runState.health,
       torch: { ...this.runState.torch }, carried: this.runState.carried.length, haul: this.runState.carriedValue, flags: { ...this.runState.flags },
       bodies: this.physics.bodyCount(), attached: [...this.attached.keys()], hemi: this.sky.hemi.intensity, sun: this.sky.sun.intensity, outdoor: this.sky.outdoor,
-      sky: this.sky.sky.visible, prompt: this.promptText, guardians: this.guardians.activeCount(), outcome: this.runState.outcome,
+      sky: this.sky.sky.visible, prompt: this.promptText, calls: this.renderer.info.render.calls, tris: this.renderer.info.render.triangles, guardians: this.guardians.activeCount(), outcome: this.runState.outcome,
     };
   }
 }
