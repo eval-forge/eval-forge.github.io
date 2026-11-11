@@ -429,6 +429,8 @@ export class Drawbridge implements Entity {
 export class Sundial implements Entity, Interactable {
   private readonly ring: THREE.Group;
   private readonly cap: THREE.Mesh;
+  private readonly fixed = new THREE.Group();
+  private collider: RAPIER.Collider | null = null;
   /** Ring angle, same convention as shadowAzimuth (atan2(x, z)). */
   angle: number;
   private shown: number;
@@ -436,6 +438,8 @@ export class Sundial implements Entity, Interactable {
   private solved: boolean;
   private repeat = 0;
   private capT: number;
+  /** Where the Sun Disc stands once the niche is open. */
+  readonly keyPos: Vec3Like;
 
   constructor(
     private readonly game: Game,
@@ -449,10 +453,10 @@ export class Sundial implements Entity, Interactable {
     this.angle = game.run.get('sundial.angle', Math.PI * 0.6);
     this.shown = this.angle;
     this.capT = this.solved ? 1 : 0;
+    this.keyPos = { x: cx, y: y + 0.42, z: cz + 0.68 };
     const mats = game.mats;
+    const world = game.physics.world;
     this.ring = new THREE.Group();
-    const rg = new THREE.RingGeometry(2.3, 3.4, 48, 1);
-    rg.rotateX(-Math.PI / 2);
     const ringMesh = mats.mesh(new THREE.CylinderGeometry(3.4, 3.4, 0.22, 48, 1, false), 'templeStone', false);
     ringMesh.position.y = 0.11;
     ringMesh.receiveShadow = true;
@@ -487,17 +491,41 @@ export class Sundial implements Entity, Interactable {
     this.ring.rotation.y = this.angle;
     scene.group.add(this.ring);
 
-    // Centre stone that lifts away when solved.
-    this.cap = mats.mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.3, 20), 'templeStone', false);
+    // The fixed heart of the dial: a plinth with a sealed niche, and the gnomon that throws the shadow.
+    const plinth = mats.mesh(new THREE.BoxGeometry(1.1, 1.0, 1.1), 'templeStone', false);
+    plinth.position.set(cx, y + 0.22 + 0.5, cz);
+    const niche = mats.mesh(new THREE.BoxGeometry(0.62, 0.62, 0.04), 'char', false);
+    niche.position.set(cx, y + 0.22 + 0.42, cz + 0.56);
+    const gnomon = mats.mesh(new THREE.CylinderGeometry(0.05, 0.2, 4.8, 8), 'bronze', false);
+    gnomon.position.set(cx, y + 1.22 + 2.4, cz);
+    const finial = mats.mesh(new THREE.SphereGeometry(0.16, 10, 8), 'gold', false);
+    finial.position.set(cx, y + 1.22 + 4.85, cz);
+    for (const m of [plinth, niche, gnomon, finial]) {
+      m.castShadow = m !== niche;
+      m.receiveShadow = true;
+      this.fixed.add(m);
+    }
+    scene.group.add(this.fixed);
+    const solid = (desc: RAPIER.ColliderDesc): void => {
+      game.physics.setMeta(world.createCollider(desc.setCollisionGroups(GROUPS.world), scene.body), { surface: 'stone' });
+    };
+    solid(RAPIER.ColliderDesc.cylinder(0.11, 3.4).setTranslation(cx, y + 0.11, cz));
+    solid(RAPIER.ColliderDesc.cuboid(0.55, 0.5, 0.55).setTranslation(cx, y + 0.72, cz));
+    solid(RAPIER.ColliderDesc.cylinder(2.4, 0.16).setTranslation(cx, y + 3.6, cz));
+
+    // The niche cover: slides down into the dial when the ring is set right.
+    this.cap = mats.mesh(new THREE.BoxGeometry(0.7, 0.7, 0.09), 'bronze', false);
     this.cap.castShadow = true;
     this.cap.receiveShadow = true;
     scene.group.add(this.cap);
 
-    const c = game.physics.world.createCollider(
-      RAPIER.ColliderDesc.cylinder(0.75, 3.75).setTranslation(cx, y + 0.75, cz).setCollisionGroups(GROUPS.interact),
-      scene.body,
-    );
-    game.physics.setMeta(c, { interact: this, kind: 'sundial' });
+    if (!this.solved) {
+      this.collider = world.createCollider(
+        RAPIER.ColliderDesc.cylinder(0.8, 3.75).setTranslation(cx, y + 0.8, cz).setCollisionGroups(GROUPS.interact),
+        scene.body,
+      );
+      game.physics.setMeta(this.collider, { interact: this, kind: 'sundial' });
+    }
     this.frame(0);
   }
 
@@ -536,14 +564,17 @@ export class Sundial implements Entity, Interactable {
       }
     }
     const f = game.run.clock.dayFraction;
-    if (sundialAligned(this.angle, f)) {
+    if (sundialReadable(f) && sundialAligned(this.angle, f)) {
       this.hold += dt;
       if (this.hold > 0.9) {
         this.solved = true;
         game.run.set('sundial.solved', true);
+        game.run.set('sundial.angle', this.angle);
+        game.physics.removeCollider(this.collider);
+        this.collider = null;
         game.sfx('unlock', { x: this.cx, y: this.y, z: this.cz });
         game.sfx('gong', { x: this.cx, y: this.y, z: this.cz }, 0.6);
-        game.toast('The serpent drinks the shadow. The centre stone lifts.', 'good');
+        game.toast('The serpent drinks the shadow. A niche opens in the dial.', 'good');
         this.onSolved();
       }
     } else {
@@ -564,12 +595,13 @@ export class Sundial implements Entity, Interactable {
     this.shown += d * Math.min(1, dt * 7);
     this.ring.rotation.y = this.shown;
     this.capT = clamp01(this.capT + (this.solved ? dt * 0.7 : -dt));
-    this.cap.position.set(this.cx + this.capT * 1.5, this.y + 0.47 + Math.sin(this.capT * Math.PI) * 0.5, this.cz);
+    this.cap.position.set(this.cx, this.y + 0.22 + 0.42 - this.capT * 0.78, this.cz + 0.6);
   }
 
   dispose(): void {
     this.game.run.set('sundial.angle', this.angle);
-    for (const o of [this.ring, this.cap]) {
+    this.collider = null;
+    for (const o of [this.ring, this.cap, this.fixed]) {
       o.removeFromParent();
       o.traverse((m) => (m as THREE.Mesh).geometry?.dispose());
     }
