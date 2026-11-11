@@ -80,6 +80,13 @@ float mossNoise(vec2 p) {
   mat.customProgramCacheKey = () => 'moss' + strength.toFixed(2);
 }
 
+/**
+ * Zone C variant of the lighting chunk: the sun (directional) and hemisphere fill are compiled
+ * out, so a zone C surface can only ever be lit by point lights (torch, sconces). There is no
+ * ambient light or environment map anywhere in the game, so nothing else can reach it.
+ */
+const DARK_LIGHTS = THREE.ShaderChunk.lights_fragment_begin.replace('#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )', '#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct ) && !defined( ZONE_C )').replace('#if ( NUM_HEMI_LIGHTS > 0 )', '#if ( NUM_HEMI_LIGHTS > 0 ) && !defined( ZONE_C )');
+
 function std(set: TexSet | null, o: THREE.MeshStandardMaterialParameters & { repeat?: number } = {}): THREE.MeshStandardMaterial {
   const { repeat, ...rest } = o;
   const m = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0, ...rest });
@@ -184,6 +191,58 @@ export class Materials {
     return m;
   }
 
+  private darkCache = new Map<THREE.Material, THREE.Material>();
+  private darkViewObj: Materials | null = null;
+
+  /** The zone C twin of a material: same look, but deaf to the sun and the sky fill. */
+  dark(m: THREE.Material): THREE.Material {
+    const hit = this.darkCache.get(m);
+    if (hit) return hit;
+    const base = m as THREE.MeshStandardMaterial;
+    if (!base.isMeshStandardMaterial || base.emissiveIntensity > 0 && base.emissive.getHex() !== 0) {
+      this.darkCache.set(m, m);
+      return m;
+    }
+    const d = base.clone();
+    const prev = base.onBeforeCompile;
+    const prevKey = base.customProgramCacheKey();
+    d.onBeforeCompile = (shader, renderer) => {
+      prev.call(base, shader, renderer);
+      if (!shader.fragmentShader.includes('#include <lights_fragment_begin>')) console.warn('zone C: light chunk not found');
+      shader.fragmentShader = '#define ZONE_C\n' + shader.fragmentShader.replace('#include <lights_fragment_begin>', DARK_LIGHTS);
+    };
+    d.customProgramCacheKey = () => prevKey + '|zoneC';
+    d.name = (base.name || 'mat') + ':zoneC';
+    this.darkCache.set(m, d);
+    this.darkCache.set(d, d);
+    return d;
+  }
+
+  /** A Materials facade whose get() hands out zone C twins (used to build dark scenes). */
+  get darkView(): Materials {
+    if (this.darkViewObj) return this.darkViewObj;
+    const v = Object.create(this) as Materials;
+    v.get = (k: MatKey) => this.dark(this.get(k));
+    v.water = this.dark(this.water) as THREE.MeshStandardMaterial;
+    v.waterDark = this.dark(this.waterDark) as THREE.MeshStandardMaterial;
+    this.darkViewObj = v;
+    return v;
+  }
+
+  /** Swap every mesh under `obj` to its zone C twin (or back). */
+  applyDark(obj: THREE.Object3D, dark: boolean) {
+    obj.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const cur = mesh.material as THREE.Material;
+      if (Array.isArray(cur)) return;
+      if (dark) {
+        if (!mesh.userData.baseMat) mesh.userData.baseMat = cur;
+        mesh.material = this.dark(mesh.userData.baseMat);
+      } else if (mesh.userData.baseMat) mesh.material = mesh.userData.baseMat;
+    });
+  }
+
   /** Animate water normal maps. */
   update(t: number) {
     if (this.water.normalMap) this.water.normalMap.offset.set(t * 0.03, t * 0.017);
@@ -192,6 +251,6 @@ export class Materials {
   }
 
   all(): THREE.Material[] {
-    return [...this.mats.values(), this.water, this.waterDark, this.sunstoneLit, this.sunstoneDim, this.shaft, this.flame, this.dust];
+    return [...this.mats.values(), this.water, this.waterDark, this.sunstoneLit, this.sunstoneDim, this.shaft, this.flame, this.dust, ...new Set(this.darkCache.values())];
   }
 }

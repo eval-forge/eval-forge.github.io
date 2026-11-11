@@ -76,6 +76,8 @@ export interface SceneCtx {
   carriedCount(): number;
   /** Wake a dormant guardian standing at a spawn point right now (vault statue). */
   wakeEarly(spawn: string): void;
+  /** True while the camera is in a zone C scene: nothing but fire may be visible then. */
+  cameraDark(): boolean;
 }
 
 export type ToastKind = 'info' | 'good' | 'bad' | 'key' | 'warn';
