@@ -882,7 +882,12 @@ export class DebrisField implements SetPiece {
         any = true;
       }
     }
-    if (any) (this.dust.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+    if (any) {
+      (this.dust.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+      // The dust is unlit, so dim it by hand with the sky or it glows at night.
+      const k = Math.min(1, 0.06 + this.game.sky.ambientIntensity / 1.8);
+      (this.dust.material as THREE.PointsMaterial).color.setRGB(0.69 * k, 0.65 * k, 0.56 * k);
+    }
   }
 
   dispose(): void { while (this.chunks.length) this.kill(0); }
@@ -1183,6 +1188,7 @@ export class Lever implements SetPiece {
 export class RopeAnchor implements SetPiece {
   private inter: Interactable;
   private vines: SetPiece | null = null;
+  private line: Climbable | null = null;
 
   constructor(private game: Game, private sb: SceneBuilder, readonly id: string, private x: number, private yTop: number, private z: number,
     private yBottom: number, private nx: number, private nz: number) {
@@ -1191,9 +1197,14 @@ export class RopeAnchor implements SetPiece {
     sb.add(ring); sb.track(ring.geometry);
     this.inter = {
       pos: new THREE.Vector3(x, yTop + 0.3, z), range: 2.8,
-      prompt: () => (this.vines ? null : game.run.ropes > 0 ? `Tie off a rope here (${game.run.ropes} left)` : 'Iron ring (needs a rope from the shop)'),
+      prompt: () => (this.vines ? (game.player.pos.y > yTop - 0.5 && !game.player.climbing ? 'Climb down the rope' : null)
+        : game.run.ropes > 0 ? `Tie off a rope here (${game.run.ropes} left)` : 'Iron ring (needs a rope from the shop)'),
       act: () => {
-        if (this.vines) return;
+        if (this.vines) {
+          // From the ledge above there is nothing to push against, so the ring puts you on the rope.
+          if (this.line && game.player.pos.y > yTop - 0.5) game.player.startClimb(this.line, x + nx * 0.42, yTop - 0.75, z + nz * 0.42);
+          return;
+        }
         if (game.run.ropes <= 0) { game.toast('You need a climbing rope. The shop sells them.'); return; }
         game.run.ropes--;
         game.run.flags.add(`rope:${id}`);
@@ -1213,10 +1224,11 @@ export class RopeAnchor implements SetPiece {
     rope.geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(rope.geometry.attributes.position.count * 3).fill(1), 3));
     rope.position.set(x + nx * 0.25, this.yBottom + h / 2, z + nz * 0.25);
     this.sb.add(rope); this.sb.track(rope.geometry);
-    this.vines = addVines(game, this.sb, {
+    this.line = {
       x1: x - 0.6 + Math.min(0, nx) * 0.2, x2: x + 0.6 + Math.max(0, nx) * 0.7, z1: z - 0.6 + Math.min(0, nz) * 0.2, z2: z + 0.6 + Math.max(0, nz) * 0.7,
       y1: this.yBottom, y2: this.yTop + 0.2, nx, nz,
-    }, false);
+    };
+    this.vines = addVines(game, this.sb, this.line, false);
   }
 
   dispose(): void { this.game.removeInteractable(this.inter); this.vines?.dispose?.(); }

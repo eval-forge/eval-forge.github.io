@@ -197,7 +197,7 @@ Gold = sum of banked haul values. Shop:
 | --- | --- | --- |
 | Torch | 3 | Radius 11 → 13 → 15 m, burn time 240 → 320 → 420 s |
 | Fuel | 3 | Start with 0 → 1 → 2 fuel flasks |
-| Rope | 2 | Carry 0 → 1 → 2 ropes; drop one at an anchor ring to make a climbable line |
+| Rope | 1 | Carry one rope; tie it off at the anchor ring on the outer cliffs to make a climbable line (planned as two levels, cut to one because only one anchor was built) |
 | Satchel | 3 | Capacity 12 → 18 → 26 kg |
 
 High-score table keeps the ten best escapes by haul value. Settings, shop levels, gold, scores and the best-run ghost are saved to `localStorage`.

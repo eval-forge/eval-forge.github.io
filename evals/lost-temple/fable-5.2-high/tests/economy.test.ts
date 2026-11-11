@@ -138,11 +138,11 @@ describe('shop', () => {
     expect(w.upgrades.satchel).toBe(0);
   });
   it('turns levels into a better loadout', () => {
-    const base = loadoutFor(NO_UPGRADES), top = loadoutFor({ torch: 2, fuel: 2, rope: 2, satchel: 2 });
+    const base = loadoutFor(NO_UPGRADES), top = loadoutFor({ torch: 2, fuel: 2, rope: 1, satchel: 2 });
     expect(top.torchRadius).toBeGreaterThan(base.torchRadius);
     expect(top.burnTime).toBeGreaterThan(base.burnTime);
     expect(top.capacity).toBeGreaterThan(base.capacity);
     expect(top.flasks).toBe(2);
-    expect(top.ropes).toBe(2);
+    expect(top.ropes).toBe(1);
   });
 });
