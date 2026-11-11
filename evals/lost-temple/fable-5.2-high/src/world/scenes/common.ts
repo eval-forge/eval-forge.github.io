@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { SceneBuilder, SetPiece } from '../../engine/builder';
 import type { MatName } from '../../engine/materials';
 import type { Game } from '../../game/Game';
+import { flaskMesh, torchMesh } from '../props';
+import { Pickup, Sconce } from '../setpieces';
 
 export interface Opening { side: 'n' | 's' | 'e' | 'w'; a1: number; a2: number; h: number; y?: number; }
 
@@ -40,3 +42,23 @@ export function spawnRocks(game: Game, scene: string, rocks: [number, number, nu
 }
 
 export const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+
+/** Standalone meshes that use the merged level materials need a white vertex colour attribute. */
+export function white<T extends THREE.BufferGeometry>(g: T, k = 1): T {
+  g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(k), 3));
+  return g;
+}
+
+export function flask(game: Game, b: SceneBuilder, id: string, x: number, y: number, z: number): void {
+  const m = flaskMesh(game.mats); m.position.set(x, y, z);
+  b.piece(new Pickup(game, b, id, m, 'Take the oil flask', () => { game.run.torch.flasks++; game.toast('Oil flask. Press R to top up the torch.'); }));
+}
+
+export function spareTorch(game: Game, b: SceneBuilder, id: string, x: number, y: number, z: number): void {
+  const m = torchMesh(game.mats); m.position.set(x, y, z);
+  b.piece(new Pickup(game, b, id, m, 'Take the spare torch', () => { game.run.torch.spares++; game.toast('Spare torch. Leave it in a sconce, or press T to swap.'); }));
+}
+
+export function sconce(game: Game, b: SceneBuilder, id: string, x: number, y: number, z: number, nx: number, nz: number): void {
+  b.piece(new Sconce(game, b, id, x, y, z, nx, nz));
+}

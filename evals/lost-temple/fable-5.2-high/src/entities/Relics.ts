@@ -25,7 +25,7 @@ export class Relics {
       const onPedestal = !!pl.spot.pedestal || !!pl.spot.trap;
       if (onPedestal) pedestal(sb, x, y, z, PEDESTAL_H, !!pl.spot.trap);
       if (game.run.taken.has(pl.spot.id)) continue;
-      const mesh = makeRelicMesh(pl.relic, game.mats);
+      const mesh = makeRelicMesh(pl.relic, game.mats, sb.gate);
       const top = y + (onPedestal ? PEDESTAL_H + 0.03 : 0.02);
       mesh.position.set(x, top + mesh.userData.halfHeight, z);
       mesh.rotation.y = (x * 1.7 + z * 0.9) % 6.28;
@@ -93,6 +93,8 @@ export class Relics {
     game.hud.lootPop(item.value);
     return true;
   }
+
+  nameOf(it: CarriedRelic): string { return relicName(it); }
 
   /** Drop the most recent relic out of the satchel as a physical object. */
   dropLast(): void {
