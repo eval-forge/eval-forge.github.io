@@ -38,8 +38,9 @@ export class World {
       m.position.set(x, y, z); m.rotation.y = ry;
       this.backdrop.add(m);
     };
-    add(0, 30, -150, 150, 100, 100); add(-50, 45, -190, 110, 130, 90, 0.3); add(60, 38, -180, 100, 120, 80, -0.25);
-    add(-95, 14, -70, 60, 70, 150, 0.1); add(0, 70, -230, 90, 180, 70);
+    // Every block sits on y = 0 so none of them cuts across a stairwell on its way underground.
+    add(0, 40, -151, 150, 80, 100); add(-50, 55, -190, 110, 110, 90, 0.3); add(60, 49, -180, 100, 98, 80, -0.25);
+    add(-98, 24, -70, 60, 48, 150, 0.1); add(0, 80, -230, 90, 160, 70);
     game.scene.add(this.backdrop);
   }
 
@@ -104,11 +105,16 @@ export class World {
     this.loaded.delete(id);
   }
 
-  /** Start of a run: drop everything and build the first scenes up front (the only wait in a run). */
-  start(scene: SceneId): void {
+  /** Throw every scene away without stashing anything. Call before replacing the run state. */
+  clear(): void {
     if (this.building) { this.building.sb.dispose(); this.building = null; }
     for (const id of [...this.loaded.keys()]) { this.loaded.get(id)!.dispose(); this.loaded.delete(id); }
     this.queue = [];
+  }
+
+  /** Start of a run: build the first scenes up front (the only wait in a run). */
+  start(scene: SceneId): void {
+    this.clear();
     this.current = scene;
     for (const id of this.wanted()) this.finishNow(this.begin(id));
   }

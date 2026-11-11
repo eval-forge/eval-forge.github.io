@@ -2,19 +2,21 @@ import * as THREE from 'three';
 import type { RelicType } from '../core/economy';
 import { Rng } from '../core/rng';
 import type { SceneBuilder } from '../engine/builder';
-import type { MatName, Materials } from '../engine/materials';
+import type { Gate, MatName, Materials } from '../engine/materials';
 
 // ---------------------------------------------------------------------------------------------
 // Relic meshes: every relic type is modelled from primitives.
 // ---------------------------------------------------------------------------------------------
 
-export function makeRelicMesh(r: RelicType, mats: Materials): THREE.Group {
+export function makeRelicMesh(r: RelicType, mats: Materials, gate: Gate = 'sky'): THREE.Group {
+  const S = (c: number, rough = 0.6, metal = 0) => mats.solid(c, rough, Math.min(metal, 0.45), 0, gate);
   const g = new THREE.Group();
   const metal = ['gem', 'mirror', 'idol', 'sceptre', 'ingot', 'disc', 'crown', 'serpent'].includes(r.shape);
-  const main = mats.solid(r.color, metal ? 0.3 : 0.7, metal ? 0.85 : 0.05);
-  const dark = mats.solid(0x1a1612, 0.9);
-  const ruby = mats.solid(0xb01828, 0.2, 0.3);
-  const teal = mats.solid(0x2aa6a0, 0.25, 0.3);
+  // Metalness is kept moderate: there is no environment map (it would be ambient light underground).
+  const main = S(r.color, metal ? 0.32 : 0.7, metal ? 0.45 : 0.05);
+  const dark = S(0x1a1612, 0.9);
+  const ruby = S(0xb01828, 0.2, 0.3);
+  const teal = S(0x2aa6a0, 0.25, 0.3);
   const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z); m.rotation.set(rx, ry, rz); m.scale.set(sx, sy, sz);
@@ -32,13 +34,13 @@ export function makeRelicMesh(r: RelicType, mats: Materials): THREE.Group {
       break;
     case 'pouch':
       add(sph(0.11), main, 0, 0.09, 0, 0, 0, 0, 1, 0.82, 1); add(cyl(0.035, 0.05, 0.06), main, 0, 0.19);
-      add(new THREE.TorusGeometry(0.045, 0.012, 5, 10), mats.solid(0xc8a878, 0.9), 0, 0.17, 0, Math.PI / 2);
-      add(cyl(0.03, 0.03, 0.008, 10), mats.solid(0xc88a3a, 0.4, 0.8), 0.13, 0.01, 0.04); add(cyl(0.03, 0.03, 0.008, 10), mats.solid(0xc88a3a, 0.4, 0.8), 0.1, 0.01, -0.08);
+      add(new THREE.TorusGeometry(0.045, 0.012, 5, 10), S(0xc8a878, 0.9), 0, 0.17, 0, Math.PI / 2);
+      add(cyl(0.03, 0.03, 0.008, 10), S(0xc88a3a, 0.4, 0.8), 0.13, 0.01, 0.04); add(cyl(0.03, 0.03, 0.008, 10), S(0xc88a3a, 0.4, 0.8), 0.1, 0.01, -0.08);
       break;
     case 'flute':
       add(cyl(0.018, 0.022, 0.42, 8), main, 0, 0.03, 0, 0, 0, Math.PI / 2);
       for (let i = 0; i < 4; i++) add(cyl(0.008, 0.008, 0.05, 6), dark, -0.1 + i * 0.06, 0.035, 0);
-      add(cyl(0.026, 0.026, 0.03, 8), mats.solid(0x8a3a2a, 0.8), 0.2, 0.03, 0, 0, 0, Math.PI / 2);
+      add(cyl(0.026, 0.026, 0.03, 8), S(0x8a3a2a, 0.8), 0.2, 0.03, 0, 0, 0, Math.PI / 2);
       break;
     case 'frog':
       add(sph(0.11), main, 0, 0.07, 0, 0, 0, 0, 1.15, 0.62, 1.3); add(sph(0.03), main, 0.05, 0.14, 0.09); add(sph(0.03), main, -0.05, 0.14, 0.09);
@@ -52,18 +54,18 @@ export function makeRelicMesh(r: RelicType, mats: Materials): THREE.Group {
       for (let i = -2; i <= 2; i++) add(new THREE.ConeGeometry(0.025, 0.16, 5), i % 2 ? teal : ruby, i * 0.06, 0.42 - Math.abs(i) * 0.02, 0, 0, 0, -i * 0.22);
       break;
     case 'gem':
-      add(new THREE.OctahedronGeometry(0.1, 0), mats.solid(r.color, 0.05, 0.4), 0, 0.14, 0, 0, 0.4, 0, 1, 1.35, 1);
-      add(cyl(0.05, 0.07, 0.03, 8), mats.solid(0x3a3a3a, 0.8), 0, 0.015);
+      add(new THREE.OctahedronGeometry(0.1, 0), S(r.color, 0.05, 0.4), 0, 0.14, 0, 0, 0.4, 0, 1, 1.35, 1);
+      add(cyl(0.05, 0.07, 0.03, 8), S(0x3a3a3a, 0.8), 0, 0.015);
       break;
     case 'scroll':
       add(cyl(0.035, 0.035, 0.34, 10), main, 0, 0.04, 0, 0, 0, Math.PI / 2);
-      for (const s of [-1, 1]) add(cyl(0.02, 0.02, 0.06, 8), mats.solid(0x7a2a1e, 0.6), s * 0.19, 0.04, 0, 0, 0, Math.PI / 2);
+      for (const s of [-1, 1]) add(cyl(0.02, 0.02, 0.06, 8), S(0x7a2a1e, 0.6), s * 0.19, 0.04, 0, 0, 0, Math.PI / 2);
       add(box(0.02, 0.075, 0.075), ruby, 0, 0.04, 0);
       break;
     case 'mirror':
-      add(cyl(0.15, 0.15, 0.025, 20), mats.solid(r.color, 0.08, 1), 0, 0.3, 0, Math.PI / 2);
-      add(new THREE.TorusGeometry(0.15, 0.022, 6, 20), mats.solid(0x9a8050, 0.4, 0.8), 0, 0.3, 0);
-      add(cyl(0.02, 0.028, 0.16, 8), mats.solid(0x9a8050, 0.4, 0.8), 0, 0.08);
+      add(cyl(0.15, 0.15, 0.025, 20), S(r.color, 0.08, 1), 0, 0.3, 0, Math.PI / 2);
+      add(new THREE.TorusGeometry(0.15, 0.022, 6, 20), S(0x9a8050, 0.4, 0.8), 0, 0.3, 0);
+      add(cyl(0.02, 0.028, 0.16, 8), S(0x9a8050, 0.4, 0.8), 0, 0.08);
       break;
     case 'skull':
       add(sph(0.12, 10), main, 0, 0.16, 0, 0, 0, 0, 1, 1, 1.15); add(box(0.14, 0.07, 0.12), main, 0, 0.05, 0.03);
@@ -73,17 +75,17 @@ export function makeRelicMesh(r: RelicType, mats: Materials): THREE.Group {
       const pts = [[0.06, 0], [0.13, 0.06], [0.16, 0.18], [0.12, 0.3], [0.06, 0.34], [0.08, 0.4]].map(([x, y]) => new THREE.Vector2(x, y));
       add(new THREE.LatheGeometry(pts, 14), main);
       for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; add(sph(0.022, 6), i % 2 ? ruby : teal, Math.cos(a) * 0.16, 0.18, Math.sin(a) * 0.16); }
-      add(cyl(0.065, 0.065, 0.03, 12), mats.solid(0xd0a030, 0.4, 0.8), 0, 0.41);
+      add(cyl(0.065, 0.065, 0.03, 12), S(0xd0a030, 0.4, 0.8), 0, 0.41);
       break;
     }
     case 'idol':
       add(box(0.3, 0.06, 0.3), main, 0, 0.03); add(box(0.2, 0.22, 0.24), main, 0, 0.17); add(box(0.18, 0.15, 0.18), main, 0, 0.36, 0.04);
-      for (const s of [-1, 1]) { add(new THREE.ConeGeometry(0.035, 0.07, 4), main, s * 0.07, 0.47, 0.04); add(box(0.06, 0.16, 0.09), main, s * 0.1, 0.14, 0.14); add(sph(0.022, 6), mats.solid(0x20c070, 0.2, 0.4), s * 0.045, 0.385, 0.135); }
+      for (const s of [-1, 1]) { add(new THREE.ConeGeometry(0.035, 0.07, 4), main, s * 0.07, 0.47, 0.04); add(box(0.06, 0.16, 0.09), main, s * 0.1, 0.14, 0.14); add(sph(0.022, 6), S(0x20c070, 0.2, 0.4), s * 0.045, 0.385, 0.135); }
       add(box(0.1, 0.05, 0.06), main, 0, 0.33, 0.15);
       break;
     case 'dagger':
       add(new THREE.ConeGeometry(0.04, 0.3, 4), main, 0, 0.02, 0.1, Math.PI / 2, 0, 0, 1, 1, 0.35);
-      add(box(0.13, 0.025, 0.03), mats.solid(0xc8a040, 0.4, 0.8), 0, 0.02, -0.06); add(cyl(0.018, 0.018, 0.12, 6), mats.solid(0x5a3a22, 0.9), 0, 0.02, -0.13, Math.PI / 2);
+      add(box(0.13, 0.025, 0.03), S(0xc8a040, 0.4, 0.8), 0, 0.02, -0.06); add(cyl(0.018, 0.018, 0.12, 6), S(0x5a3a22, 0.9), 0, 0.02, -0.13, Math.PI / 2);
       break;
     case 'serpent':
       for (let i = 0; i < 3; i++) add(new THREE.TorusGeometry(0.12 - i * 0.025, 0.035, 6, 14), main, 0, 0.035 + i * 0.065, 0, Math.PI / 2);
@@ -102,11 +104,11 @@ export function makeRelicMesh(r: RelicType, mats: Materials): THREE.Group {
       break;
     }
     case 'disc':
-      add(cyl(0.3, 0.3, 0.05, 24), main, 0, 0.3, 0, Math.PI / 2); add(cyl(0.09, 0.09, 0.07, 14), mats.solid(0xfff0a0, 0.25, 0.9), 0, 0.3, 0, Math.PI / 2);
-      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; add(box(0.03, 0.09, 0.065), mats.solid(0xb88818, 0.4, 0.8), Math.cos(a) * 0.21, 0.3 + Math.sin(a) * 0.21, 0, 0, 0, a + Math.PI / 2); }
+      add(cyl(0.3, 0.3, 0.05, 24), main, 0, 0.3, 0, Math.PI / 2); add(cyl(0.09, 0.09, 0.07, 14), S(0xfff0a0, 0.25, 0.9), 0, 0.3, 0, Math.PI / 2);
+      for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; add(box(0.03, 0.09, 0.065), S(0xb88818, 0.4, 0.8), Math.cos(a) * 0.21, 0.3 + Math.sin(a) * 0.21, 0, 0, 0, a + Math.PI / 2); }
       break;
     case 'crown':
-      (add(new THREE.CylinderGeometry(0.13, 0.12, 0.09, 16, 1, true), mats.solid(r.color, 0.25, 0.9), 0, 0.045).material as THREE.Material).side = THREE.DoubleSide;
+      (add(new THREE.CylinderGeometry(0.13, 0.12, 0.09, 16, 1, true), S(r.color, 0.25, 0.9), 0, 0.045).material as THREE.Material).side = THREE.DoubleSide;
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2;
         add(new THREE.ConeGeometry(0.028, 0.12, 4), main, Math.cos(a) * 0.125, 0.14, Math.sin(a) * 0.125);

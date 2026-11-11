@@ -134,12 +134,18 @@ export function useSerpentKey(p: Progress): boolean {
   return true;
 }
 
-/** Darkness: inner gates open for the guardians and the drawbridge drops. */
+/**
+ * Darkness: inner gates open for the guardians, the drawbridge drops, both cracked walls give way
+ * and any rubble plugging the sanctum doorway is torn out.
+ */
 export function fallNight(p: Progress): void {
   p.night = true;
   p.sealOpen = true;
   p.vaultOpen = true;
   p.drawbridgeDown = true;
+  p.kickEast = true;
+  p.kickSmuggler = true;
+  p.rubblePlug = false;
 }
 
 /** Sundial puzzle: is the dial's glyph lined up with the gnomon shadow? Angles in radians. */
