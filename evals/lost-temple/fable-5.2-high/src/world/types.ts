@@ -39,6 +39,8 @@ export interface Interactable {
   act(): void;
   /** Lower sorts first when several are in view. */
   priority?: number;
+  /** The thing is itself a wall (its centre is inside solid stone), so skip the line-of-sight test. */
+  solid?: boolean;
 }
 
 export interface Climbable {

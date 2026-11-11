@@ -478,7 +478,7 @@ export class KickWall implements SetPiece {
     this.mesh.position.copy(this.center);
     sb.add(this.mesh);
     this.inter = {
-      pos: this.center.clone().setY(y1 + 1.3), range: 3.2, priority: 2,
+      pos: this.center.clone().setY(y1 + 1.3), range: 3.2, priority: 2, solid: true,
       prompt: () => 'Kick down the cracked wall',
       act: () => this.breakOpen(true),
     };
