@@ -112,11 +112,26 @@ export function wood(base: RGB, seed: number, planks = 4, size = 256): Pair {
   const tint = Array.from({ length: planks }, () => 0.75 + rng.next() * 0.4);
   return paint(size, (x, y) => {
     const p = Math.floor(y / ph), fy = y - p * ph;
-    const g = tfbm(x / 60, (y + p * 37) / 3, size / 60, 3, seed + p);
+    // Tileable along U only; the dark joints between planks hide the seam along V.
+    const u = x / size, gy = (y + p * 37) / 3;
+    const g = fbm2(x / 60, gy, 3, seed + p) * (1 - u) + fbm2((x - size) / 60, gy, 3, seed + p) * u;
     const knot = tfbm(x / 22, y / 22, size / 22, 2, seed + 77);
     const gap = Math.min(fy, ph - fy) < 1.6;
-    const k = gap ? 0.3 : tint[p] * (0.75 + g * 0.5) * (knot > 0.72 ? 0.7 : 1);
-    return { c: scale(base, k), h: gap ? 0.1 : 0.5 + g * 0.3 };
+    const k = gap ? 0.35 : tint[p] * (0.86 + g * 0.26) * (knot > 0.72 ? 0.8 : 1);
+    return { c: scale(base, k), h: gap ? 0.1 : 0.5 + g * 0.2 };
+  });
+}
+
+/** Riveted iron: a lattice of flat bars over a dark recessed plate. */
+export function ironwork(seed: number, size = 128): Pair {
+  const cell = size / 4;
+  return paint(size, (x, y) => {
+    const fx = Math.abs((x % cell) - cell / 2), fy = Math.abs((y % cell) - cell / 2);
+    const bar = Math.min(fx, fy) < cell * 0.17;
+    const rivet = Math.hypot(fx, fy) < cell * 0.1;
+    const n = tfbm(x / 9, y / 9, size / 9, 3, seed);
+    const k = (rivet ? 1.25 : bar ? 0.95 : 0.34) * (0.8 + n * 0.4);
+    return { c: scale([122, 118, 116], k), h: rivet ? 1 : bar ? 0.7 : 0.15 };
   });
 }
 

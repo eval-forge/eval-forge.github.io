@@ -198,7 +198,12 @@ export const catacombs: SceneDef = {
       [-34, -84.3], [-34, -82.8], [-32.5, -82.8], [-31, -82.8], [-29.5, -82.8], [-28, -82.8], [-28, -81.3], [-28, -79.8],
       [-24.2, -75], [-22.7, -75], [-22.7, -73.5], [-22.7, -72], [-22.7, -70.5], [-22.7, -69.2],
     ];
-    for (const [x, z] of causeway) b.box(W, x - 0.65, -12.4, z - 0.65, x + 0.65, -10.75, z + 0.65, { tint: 1.25 });
+    // The blocks touching the island and the two landings stand a little proud, as steps.
+    for (const [x, z] of causeway) {
+      const island = (x === -28 && z === -79.8) || (x === -24.2 && z === -75);
+      const landing = z === -84.3 || z === -69.2;
+      b.box(W, x - 0.65, -12.4, z - 0.65, x + 0.65, island ? -10.42 : landing ? -10.38 : -10.75, z + 0.65, { tint: 1.25 });
+    }
     b.piece(addWater(game, b, { x1: -42, x2: -18, z1: -87, z2: -67, surfaceY: -10.5, minY: -12.8, flowX: 0, flowZ: 0 }));
     const key = keyMesh(game.mats); key.position.set(-27.5, -9.95, -76.5); key.scale.setScalar(1.6);
     b.piece(new Pickup(game, b, 'serpentKey', key, 'Take the Serpent Key', () => { run.progress.hasSerpentKey = true; game.toast('The Serpent Key. It fits the vault door past the chasm.'); }));
@@ -213,7 +218,7 @@ export const catacombs: SceneDef = {
     b.box(W, -60, CEIL, -103, -42, CEIL + 0.7, -87, { tint: 0.8 });
     b.box(W, -60, -45, -101, -58, Y, -89); b.box(W, -60, Y, -101, -58, CEIL, -96.5); b.box(W, -60, Y, -93.5, -58, CEIL, -89); b.box(W, -60, Y + 3.5, -96.5, -58, CEIL, -93.5);
     b.box(F, -60, Y - 1, -96.5, -58, Y + 0.012, -93.5, { collide: false });
-    b.piece(new RopeBridge(game, b, 'chasmBridge', -46, Y + 0.05, -95, -56, Y + 0.05, -95, 2.0, () => {
+    b.piece(new RopeBridge(game, b, 'chasmBridge', -46, Y, -95, -56, Y, -95, 2.0, () => {
       if (run.progress.chasmBridgeIntact) { run.progress.chasmBridgeIntact = false; game.toast('The chasm bridge is gone.'); }
     }));
     b.piece(new KillZone(game, -57, -102, -45, -88, -28, 'the chasm'));

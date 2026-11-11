@@ -12,7 +12,7 @@ import { CG, G, RAPIER, groups } from '../engine/physics';
 import type { Game } from '../game/Game';
 import type { Climbable, Interactable, WaterVolume, WindZone } from './types';
 
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _v = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0), ZAXIS = new THREE.Vector3(0, 0, 1);
 
 /** Matrix for a unit box stretched between two points. */
@@ -50,11 +50,17 @@ function tintMesh(mesh: THREE.Mesh, k: number): void {
 // Rope bridge: planks are rigid bodies chained with spherical joints and hung between two anchors.
 // =============================================================================================
 
-interface PlankRt { body: RAPIER.RigidBody; col: RAPIER.Collider; mesh: THREE.Mesh; st: Plank; loaded: boolean; removeAt: number; index: number; }
+interface PlankRt {
+  /** The link in the chain. It outlives the plank: the ropes still hang when the wood has gone. */
+  body: RAPIER.RigidBody; col: RAPIER.Collider;
+  mesh: THREE.Mesh | null; debris: RAPIER.RigidBody | null;
+  st: Plank; loaded: boolean; removeAt: number; index: number;
+}
+
+const NO_COLLIDE = groups(0, 0);
 
 export class RopeBridge implements SetPiece {
-  private planks: (PlankRt | null)[] = [];
-  private joints: { j: RAPIER.ImpulseJoint; a: number; b: number }[] = [];
+  private planks: PlankRt[] = [];
   private ropes: THREE.InstancedMesh;
   private right = new THREE.Vector3();
   private a = new THREE.Vector3(); private b = new THREE.Vector3();
@@ -64,7 +70,8 @@ export class RopeBridge implements SetPiece {
   constructor(private game: Game, private sb: SceneBuilder, readonly id: string,
     ax: number, ay: number, az: number, bx: number, by: number, bz: number, width = 2.0, private onBroken?: () => void) {
     const { physics, run } = game;
-    this.a.set(ax, ay, az); this.b.set(bx, by, bz);
+    // ay and by are the level of the ground at each end; the deck hangs with its top flush to it.
+    this.a.set(ax, ay - 0.06, az); this.b.set(bx, by - 0.06, bz);
     const d = new THREE.Vector3().subVectors(this.b, this.a);
     const L = d.length(); d.normalize();
     const n = Math.max(3, Math.round(L / 0.95));
@@ -75,35 +82,39 @@ export class RopeBridge implements SetPiece {
     this.halfW = width / 2;
     const gate = sb.gate;
     for (let i = 0; i < n; i++) {
-      if (run.fallen.has(`${id}:${i}`)) { this.planks.push(null); continue; }
+      const gone = run.fallen.has(`${id}:${i}`);
       const c = new THREE.Vector3().copy(this.a).addScaledVector(d, (i + 0.5) * spacing);
       const body = physics.world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(c.x, c.y, c.z)
         .setRotation({ x: rot.x, y: rot.y, z: rot.z, w: rot.w }).setLinearDamping(0.9).setAngularDamping(2.5));
       const col = physics.world.createCollider(RAPIER.ColliderDesc.cuboid(width / 2, 0.06, depth / 2).setMass(9)
-        .setFriction(1).setCollisionGroups(CG.SOLID), body);
-      const mesh = boxMesh(game, 'wood', width, 0.12, depth, gate);
-      sb.add(mesh);
-      physics.addSync(body, mesh);
-      const p: PlankRt = { body, col, mesh, st: newPlank(), loaded: false, removeAt: 0, index: i };
+        .setFriction(1).setCollisionGroups(gone ? NO_COLLIDE : CG.SOLID), body);
+      let mesh: THREE.Mesh | null = null;
+      if (!gone) {
+        mesh = boxMesh(game, 'wood', width, 0.12, depth, gate);
+        sb.add(mesh);
+        physics.addSync(body, mesh);
+      }
+      const p: PlankRt = { body, col, mesh, debris: null, st: newPlank(), loaded: false, removeAt: 0, index: i };
+      if (gone) p.st.state = 'dropped';
+      else game.groundTriggers.set(col.handle, () => { p.loaded = true; });
       this.planks.push(p);
-      game.groundTriggers.set(col.handle, () => { p.loaded = true; });
     }
     const side = this.halfW - 0.12;
-    const link = (b1: RAPIER.RigidBody, a1: THREE.Vector3, b2: RAPIER.RigidBody, a2: THREE.Vector3, i: number, j: number) => {
+    const link = (b1: RAPIER.RigidBody, a1: THREE.Vector3, b2: RAPIER.RigidBody, a2: THREE.Vector3) => {
       const jd = RAPIER.JointData.spherical({ x: a1.x, y: a1.y, z: a1.z }, { x: a2.x, y: a2.y, z: a2.z });
-      this.joints.push({ j: physics.world.createImpulseJoint(jd, b1, b2, true), a: i, b: j });
+      physics.world.createImpulseJoint(jd, b1, b2, true);
     };
     for (let i = 0; i <= n; i++) {
       const prev = i > 0 ? this.planks[i - 1] : null, cur = i < n ? this.planks[i] : null;
       for (const s of [-1, 1]) {
         if (i === 0 && cur) {
           const w = new THREE.Vector3().copy(this.a).addScaledVector(this.right, s * side);
-          link(sb.body, w, cur.body, new THREE.Vector3(s * side, 0, -spacing / 2), -1, 0);
+          link(sb.body, w, cur.body, new THREE.Vector3(s * side, 0, -spacing / 2));
         } else if (i === n && prev) {
           const w = new THREE.Vector3().copy(this.b).addScaledVector(this.right, s * side);
-          link(prev.body, new THREE.Vector3(s * side, 0, spacing / 2), sb.body, w, n - 1, -1);
+          link(prev.body, new THREE.Vector3(s * side, 0, spacing / 2), sb.body, w);
         } else if (prev && cur) {
-          link(prev.body, new THREE.Vector3(s * side, 0, spacing / 2), cur.body, new THREE.Vector3(s * side, 0, -spacing / 2), i - 1, i);
+          link(prev.body, new THREE.Vector3(s * side, 0, spacing / 2), cur.body, new THREE.Vector3(s * side, 0, -spacing / 2));
         }
       }
     }
@@ -120,61 +131,63 @@ export class RopeBridge implements SetPiece {
     }
   }
 
-  get fallenCount(): number { return this.planks.filter((p) => !p || p.st.state === 'dropped').length; }
+  get fallenCount(): number { return this.planks.filter((p) => p.st.state === 'dropped').length; }
 
   fixedUpdate(dt: number): void {
     this.time += dt;
     const { game } = this;
+    const { physics } = game;
     for (const p of this.planks) {
-      if (!p) continue;
       if (p.st.state === 'dropped') {
-        if (p.removeAt && this.time > p.removeAt) this.removePlank(p);
+        if (p.debris && this.time > p.removeAt) {
+          physics.removeBody(p.debris); p.debris = null;
+          if (p.mesh) { p.mesh.removeFromParent(); p.mesh.geometry.dispose(); p.mesh = null; }
+        }
         continue;
       }
       const ev = stepPlank(p.st, p.loaded, dt);
-      // The player's weight bears down on the plank, so the span sags and sways underfoot.
-      if (p.loaded) p.body.applyImpulse({ x: 0, y: -420 * dt, z: 0 }, true);
+      // The player's weight bears down on the plank, so the span dips and sways underfoot.
+      if (p.loaded) p.body.applyImpulse({ x: 0, y: -160 * dt, z: 0 }, true);
       p.loaded = false;
-      if (ev === 'creak') game.audio.play('creak', { pos: p.mesh.position });
+      if (ev === 'creak') game.audio.play('creak', { pos: p.body.translation() });
       else if (ev === 'crack') {
-        game.audio.play('snap', { pos: p.mesh.position });
-        tintMesh(p.mesh, 0.5);
+        game.audio.play('snap', { pos: p.body.translation() });
+        if (p.mesh) tintMesh(p.mesh, 0.5);
         p.body.applyTorqueImpulse({ x: (Math.random() - 0.5) * 3, y: 0, z: (Math.random() - 0.5) * 3 }, true);
       } else if (ev === 'drop') {
-        for (const j of this.joints) {
-          if ((j.a === p.index || j.b === p.index) && j.j) { game.physics.world.removeImpulseJoint(j.j, true); (j as any).j = null; }
-        }
-        p.col.setCollisionGroups(CG.SMALL);
+        // The wood falls away as its own body. The link stays in the chain, so the ropes hold.
+        const t = p.body.translation(), r = p.body.rotation(), v = p.body.linvel();
+        const he = (p.col.shape as RAPIER.Cuboid).halfExtents;
+        p.col.setCollisionGroups(NO_COLLIDE);
         game.groundTriggers.delete(p.col.handle);
-        p.body.applyTorqueImpulse({ x: (Math.random() - 0.5) * 8, y: 0, z: (Math.random() - 0.5) * 8 }, true);
+        const debris = physics.world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(t.x, t.y, t.z).setRotation(r).setLinvel(v.x, v.y - 1, v.z));
+        physics.world.createCollider(RAPIER.ColliderDesc.cuboid(he.x, he.y, he.z).setMass(9).setCollisionGroups(CG.SMALL), debris);
+        debris.applyTorqueImpulse({ x: (Math.random() - 0.5) * 8, y: 0, z: (Math.random() - 0.5) * 8 }, true);
+        p.debris = debris;
+        if (p.mesh) { physics.removeSync(p.body); physics.addSync(debris, p.mesh); }
         p.removeAt = this.time + 4;
         game.run.fallen.add(`${this.id}:${p.index}`);
-        game.audio.play('plankFall', { pos: p.mesh.position });
-        game.emitNoise(p.mesh.position, 16);
+        game.audio.play('plankFall', { pos: t });
+        game.emitNoise(new THREE.Vector3(t.x, t.y, t.z), 16);
         if (this.fallenCount >= 3) this.onBroken?.();
       }
     }
   }
 
-  private removePlank(p: PlankRt): void {
-    this.game.physics.removeBody(p.body);
-    p.mesh.removeFromParent();
-    p.mesh.geometry.dispose();
-    this.planks[p.index] = null;
-  }
-
   update(): void {
-    // Ropes run along both edges of whatever planks are still hanging.
+    // Ropes run along both edges of the chain, across any gaps where planks have gone.
     let k = 0;
     const n = this.planks.length;
     for (const s of [-1, 1]) {
-      let prev: THREE.Vector3 | null = _edge(this.a, this.right, s * this.halfW, new THREE.Vector3());
+      let prev = _edge(this.a, this.right, s * this.halfW, new THREE.Vector3());
       for (let i = 0; i <= n; i++) {
-        const p = i < n ? this.planks[i] : null;
-        let cur: THREE.Vector3 | null = null;
+        let cur: THREE.Vector3;
         if (i === n) cur = _edge(this.b, this.right, s * this.halfW, new THREE.Vector3());
-        else if (p && p.st.state !== 'dropped') cur = new THREE.Vector3(s * this.halfW, 0.02, 0).applyQuaternion(p.mesh.quaternion).add(p.mesh.position);
-        if (prev && cur) this.ropes.setMatrixAt(k++, segmentMatrix(prev, cur, 0.07, _m));
+        else {
+          const body = this.planks[i].body, t = body.translation(), r = body.rotation();
+          cur = new THREE.Vector3(s * this.halfW, 0.02, 0).applyQuaternion(_q.set(r.x, r.y, r.z, r.w)).add(_v.set(t.x, t.y, t.z));
+        }
+        this.ropes.setMatrixAt(k++, segmentMatrix(prev, cur, 0.07, _m));
         prev = cur;
       }
     }
@@ -183,7 +196,12 @@ export class RopeBridge implements SetPiece {
   }
 
   dispose(): void {
-    for (const p of this.planks) if (p) { this.game.groundTriggers.delete(p.col.handle); this.game.physics.removeBody(p.body); p.mesh.geometry.dispose(); }
+    for (const p of this.planks) {
+      this.game.groundTriggers.delete(p.col.handle);
+      this.game.physics.removeBody(p.body);
+      if (p.debris) this.game.physics.removeBody(p.debris);
+      p.mesh?.geometry.dispose();
+    }
     this.planks.length = 0;
   }
 }

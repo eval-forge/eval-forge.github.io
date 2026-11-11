@@ -89,7 +89,7 @@ export const jungle: SceneDef = {
     b.box('rock', 9, -17, 68.5, 15, -12.6, 71.85, { tint: 0.85 });
     b.piece(addVines(game, b, { x1: -14, x2: -11, y1: -12, y2: 0.02, z1: 60.15, z2: 60.85, nx: 0, nz: 1 }));
     b.piece(addWater(game, b, { x1: -29, x2: 29, z1: 60.15, z2: 71.85, surfaceY: -12.3, minY: -16.5, flowX: -1.6, flowZ: 0 }));
-    b.piece(new RopeBridge(game, b, 'jungleBridge', 0, 0.07, 72.3, 0, 0.07, 59.7, 2.2));
+    b.piece(new RopeBridge(game, b, 'jungleBridge', 0, 0.02, 72.3, 0, 0.02, 59.7, 2.2));
     yield;
 
     // --- River -----------------------------------------------------------------------------
