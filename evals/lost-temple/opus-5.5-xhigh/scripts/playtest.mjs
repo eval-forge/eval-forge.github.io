@@ -163,6 +163,20 @@ for (const s of ['cliffs', 'halls', 'sanctum', 'catacombs', 'vault']) {
   console.log(s, await sample(s));
 }
 
+// ---- the expedition map after the tour (it only shows what has been seen)
+await g(() => {
+  const game = window.__game;
+  game.ui.mapOpen = true;
+  game.map.setOpen(true);
+});
+await sleep(800);
+await shot(`${OUT}/15-map.png`);
+await g(() => {
+  const game = window.__game;
+  game.ui.mapOpen = false;
+  game.map.setOpen(false);
+});
+
 // ---- Zone C: torch out, sconces out → the frame must be pure black
 async function readFrame() {
   return g(() => {
