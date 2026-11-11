@@ -34,7 +34,9 @@ export function carve(rects: NavRect[], holes: { x1: number; z1: number; x2: num
     for (const r of out) {
       if (h.x2 <= r.x1 || h.x1 >= r.x2 || h.z2 <= r.z1 || h.z1 >= r.z2) { next.push(r); continue; }
       const part = (x1: number, z1: number, x2: number, z2: number) => {
-        if (x2 - x1 < 0.3 || z2 - z1 < 0.3) return;
+        // Thin strips are kept: dropping them would leave gaps that cut the mesh in two. Whether
+        // an agent fits through is decided by portal width when the pieces are linked.
+        if (x2 - x1 < 0.02 || z2 - z1 < 0.02) return;
         const p: NavRect = { ...r, x1, z1, x2, z2 };
         if (r.slope && r.y2 !== undefined) {
           // Keep the same plane on the cut piece.

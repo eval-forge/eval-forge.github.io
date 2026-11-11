@@ -673,6 +673,8 @@ export class Boulder implements SetPiece {
   private restT = 0;
   private hitCd = 0;
   private rumbleT = 0;
+  private age = 0;
+  private spent = false;
 
   constructor(private game: Game, sb: SceneBuilder, readonly id: string, x: number, y: number, z: number, private radius: number, private kick: [number, number, number]) {
     if (game.run.flags.has(`boulder:${id}`)) return;
@@ -711,6 +713,9 @@ export class Boulder implements SetPiece {
     const { game } = this;
     const v = this.body.linvel(), t = this.body.translation();
     const speed = Math.hypot(v.x, v.y, v.z);
+    // It has done its run after a few seconds: let it grind to a halt instead of rolling about.
+    this.age += dt;
+    if (this.age > 5 && !this.spent) { this.spent = true; this.body.setLinearDamping(1.4); this.body.setAngularDamping(1.4); }
     this.rumbleT -= dt;
     if (speed > 0.8 && this.rumbleT <= 0) {
       this.rumbleT = 0.28;
@@ -732,8 +737,19 @@ export class Boulder implements SetPiece {
     }
     if (speed < 0.3) {
       this.restT += dt;
-      // Once it has stopped it is just a big rock in the way.
-      if (this.restT > 2) { this.col!.setCollisionGroups(CG.SOLID); this.body.setBodyType(RAPIER.RigidBodyType.Fixed, true); }
+      // Once it has stopped it breaks up, so it can never wall anyone in. The pieces are just rocks.
+      if (this.restT > 1.2) {
+        game.physics.removeBody(this.body); this.body = null; this.col = null;
+        this.mesh?.removeFromParent();
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          game.props.rock(t.x + Math.cos(a) * 0.7, t.y - this.radius + 0.5 + (i % 2) * 0.4, t.z + Math.sin(a) * 0.7, 3 + i);
+        }
+        game.audio.play('rubble', { pos: t, vol: 1 });
+        game.shake(0.3);
+        this.restT = 3;
+        return;
+      }
     } else this.restT = 0;
     if (t.y < -80) { game.physics.removeBody(this.body); this.body = null; this.mesh?.removeFromParent(); }
   }

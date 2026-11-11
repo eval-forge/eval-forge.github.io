@@ -356,7 +356,9 @@ export class Player {
     const wantH = Math.hypot(desired.x, desired.z);
     let stepped = false;
     if (this.grounded && ml > 0.1 && wantH > 1e-4 && Math.hypot(mv.x, mv.z) < wantH * 0.4) stepped = this.tryStep(wishX, wishZ);
-    if (dt > 0 && !stepped) {
+    // Only a real obstruction eats momentum. A slope also shortens the step, and feeding that back
+    // into the velocity every frame would make every ramp a crawl.
+    if (dt > 0 && !stepped && Math.hypot(mv.x, mv.z) < wantH * 0.5) {
       const ax = mv.x / dt - px, az = mv.z / dt - pz;
       if (Math.abs(ax) < Math.abs(this.vel.x)) this.vel.x = ax;
       if (Math.abs(az) < Math.abs(this.vel.z)) this.vel.z = az;
