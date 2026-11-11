@@ -29,6 +29,7 @@ The site is a static page (plain HTML, no build step), hosted on GitHub Pages.
 | --- | --------------------- | ---------------- | --------------------------------------------------- |
 | 1   | Orbital Relic         | Creative coding  | Claude Opus 5.5, GPT-6 Astra, Claude Sonnet 5.5     |
 | 2   | Lighthouse Cove       | Voxel / Three.js | GPT-6 Astra, GPT-6.1 Sol, GPT-5.6 Sol, and 5 more   |
+| 3   | Auric Voyage          | Fantasy ship / Three.js | Claude Fable 5.2, Opus 5.5, Sonnet 5.5, Haiku 5.5 |
 
 Each test shows the original prompt in full, so you can read exactly what every model was asked to build.
 
