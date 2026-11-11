@@ -173,15 +173,16 @@ export class SceneBuilder {
     const lowY = Math.min(yFrom, yTo);
     for (let i = 0; i < n; i++) {
       const a0 = from + (run * i) / n, a1 = from + (run * (i + 1)) / n;
-      // Step i's tread height: steps climb toward the high end.
-      const top = rise >= 0 ? yFrom + (rise * (i + 1)) / n : yFrom + (rise * i) / n;
+      // Treads straddle the walking surface (a smooth ramp), half a riser above and below it, so the
+      // ramp meets both landings flush and feet never hang up on a lip.
+      const top = yFrom + (rise * (i + 0.5)) / n;
       const bottom = Math.max(lowY - 0.4, top - 1.2);
       if (axis === 'z') this.box(mat, c1, bottom, a0, c2, top, a1, { ...o, collide: false });
       else this.box(mat, a0, bottom, c1, a1, top, c2, { ...o, collide: false });
     }
-    const len = Math.hypot(run, rise), ang = Math.atan2(rise, Math.abs(run));
+    const len = Math.hypot(run, rise) + 0.3, ang = Math.atan2(rise, Math.abs(run));
     const th = 0.5;
-    const mid = (from + to) / 2, midY = (yFrom + yTo) / 2 + (Math.abs(rise) / n) * 0.5 * Math.cos(ang) - (th / 2) * Math.cos(ang);
+    const mid = (from + to) / 2, midY = (yFrom + yTo) / 2 - th / 2 / Math.cos(ang);
     const dir = Math.sign(run) || 1;
     const d = axis === 'z'
       ? RAPIER.ColliderDesc.cuboid(Math.abs(c2 - c1) / 2, th / 2, len / 2).setTranslation((c1 + c2) / 2, midY, mid)

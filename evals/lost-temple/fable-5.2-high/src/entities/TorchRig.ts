@@ -17,6 +17,7 @@ export class TorchRig {
   private view = new THREE.Group();
   private flame: THREE.Sprite;
   private head: THREE.Mesh;
+  private stick: THREE.Mesh;
   private crackleT = 0;
   /** Current light radius in metres, 0 when not burning. */
   radius = 0;
@@ -37,13 +38,15 @@ export class TorchRig {
       this.pool.push(l);
     }
     // First-person torch.
-    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.03, 0.5, 6), game.mats.solid(0x5a3a22, 0.9));
-    this.head = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.038, 0.13, 8), new THREE.MeshStandardMaterial({ color: 0x1a120c, roughness: 1, emissive: 0x000000 }));
+    // Unlit materials driven by hand: the point light sits centimetres away and would bleach them.
+    this.stick = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.03, 0.5, 6), new THREE.MeshBasicMaterial({ color: 0x000000, fog: false }));
+    const stick = this.stick;
+    this.head = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.038, 0.13, 8), new THREE.MeshBasicMaterial({ color: 0x000000, fog: false }));
     this.head.position.y = 0.3;
     this.flame = new THREE.Sprite(new THREE.SpriteMaterial({ map: game.mats.texture('flame'), transparent: true, depthWrite: false, fog: false }));
     this.flame.position.y = 0.47;
     this.view.add(stick, this.head, this.flame);
-    this.view.position.set(0.3, -0.34, -0.55);
+    this.view.position.set(0.34, -0.34, -0.6);
     this.view.rotation.set(0.25, 0, -0.18);
     game.camera.add(this.view);
   }
@@ -136,10 +139,14 @@ export class TorchRig {
     this.view.position.y = bobY + Math.sin(run.time * 1.8) * 0.006;
     this.flame.visible = lit;
     if (lit) {
-      const s = (0.2 + 0.1 * Math.min(1, t.fuel / 0.35)) * fl;
+      const s = (0.15 + 0.08 * Math.min(1, t.fuel / 0.35)) * fl;
       this.flame.scale.set(s, s * 1.5, 1);
     }
-    (this.head.material as THREE.MeshStandardMaterial).emissive.setHex(lit ? 0x8a3008 : 0x000000);
+    // Lit by its own flame, otherwise by whatever sky light reaches the player (none in Zone C).
+    const day = Math.min(1, game.sky.ambientIntensity / 1.3);
+    const glow = lit ? 0.8 * fl : day * 0.75;
+    (this.stick.material as THREE.MeshBasicMaterial).color.setRGB(0.2 * glow, 0.115 * glow, 0.06 * glow);
+    (this.head.material as THREE.MeshBasicMaterial).color.setRGB(lit ? 0.5 * fl : 0.04 * day, lit ? 0.14 * fl : 0.03 * day, lit ? 0.03 : 0.02 * day);
     if (lit) {
       this.crackleT -= dt;
       if (this.crackleT <= 0) { this.crackleT = 0.08 + Math.random() * 0.35; game.audio.play('crackle', { vol: 0.25 + Math.random() * 0.2 }); }

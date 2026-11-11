@@ -8,6 +8,7 @@ import type { Climbable, Interactable } from '../world/types';
 import type { Prop } from './Props';
 
 const RADIUS = 0.35;
+const ROT0 = { x: 0, y: 0, z: 0, w: 1 };
 const STAND_H = 1.75;
 const CROUCH_H = 1.1;
 const WALK = 3.6, RUN = 6.2, CROUCH = 1.8, CLIMB = 2.5;
@@ -65,7 +66,9 @@ export class Player {
     this.body = w.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
     this.col = w.createCollider(RAPIER.ColliderDesc.capsule(STAND_H / 2 - RADIUS, RADIUS).setCollisionGroups(CG.PLAYER), this.body);
     this.ctl = w.createCharacterController(0.02);
-    this.ctl.enableAutostep(0.42, 0.25, false);
+    // The landing must be wider than the capsule radius, or the rounded foot comes down on the lip of
+    // the step and Rapier reads that contact as a slope too steep to stand on.
+    this.ctl.enableAutostep(0.42, RADIUS + 0.08, false);
     this.ctl.enableSnapToGround(0.35);
     this.ctl.setMaxSlopeClimbAngle((52 * Math.PI) / 180);
     this.ctl.setMinSlopeSlideAngle((58 * Math.PI) / 180);
@@ -348,7 +351,12 @@ export class Player {
         this.stamina = Math.max(0, this.stamina - 4 * dt);
       }
     }
-    if (dt > 0) {
+    // Rapier's own autostep gives up when the capsule's rounded foot meets the lip of a low step
+    // (it reads the contact as a slope and then cannot slide along it), so low steps are ours.
+    const wantH = Math.hypot(desired.x, desired.z);
+    let stepped = false;
+    if (this.grounded && ml > 0.1 && wantH > 1e-4 && Math.hypot(mv.x, mv.z) < wantH * 0.4) stepped = this.tryStep(wishX, wishZ);
+    if (dt > 0 && !stepped) {
       const ax = mv.x / dt - px, az = mv.z / dt - pz;
       if (Math.abs(ax) < Math.abs(this.vel.x)) this.vel.x = ax;
       if (Math.abs(az) < Math.abs(this.vel.z)) this.vel.z = az;
@@ -395,11 +403,48 @@ export class Player {
     }
 
     // Mantle up ledges while airborne and pushing forward.
-    if (!this.grounded && !this.swimming && mz > 0.3 && this.vel.y < 3 && this.vel.y > -9 && !this.held) this.tryMantle();
+    // Only when properly airborne: a one-frame loss of footing while shoving a block must not count.
+    this.airT = this.grounded ? 0 : this.airT + dt;
+    if (!this.grounded && !this.swimming && this.airT > 0.1 && mz > 0.3 && this.vel.y < 3 && this.vel.y > -9 && !this.held) this.tryMantle();
     else if (this.swimming && mz > 0.3) this.tryMantle();
   }
 
   private wasSwimming = false;
+  private airT = 0;
+
+  /** Step up onto a low, flat obstacle in the direction of travel. */
+  private tryStep(dx: number, dz: number): boolean {
+    const w = this.game.physics.world;
+    const l = Math.hypot(dx, dz);
+    if (l < 0.1) return false;
+    dx /= l; dz /= l;
+    const UP = 0.46, FWD = RADIUS + 0.1;
+    const shape = this.col.shape, cy = this.pos.y + this.height / 2;
+    const above = { x: this.pos.x, y: cy + UP, z: this.pos.z };
+    const ahead = { x: this.pos.x + dx * FWD, y: cy + UP, z: this.pos.z + dz * FWD };
+    if (w.intersectionWithShape(above, ROT0, shape, undefined, CG.PLAYER, this.col, this.body)) return false;
+    if (w.intersectionWithShape(ahead, ROT0, shape, undefined, CG.PLAYER, this.col, this.body)) return false;
+    const hit = w.castShape(ahead, ROT0, { x: 0, y: -1, z: 0 }, shape, 0, UP + 0.05, true, undefined, CG.PLAYER, this.col, this.body);
+    if (!hit) return false;
+    const rise = UP - hit.time_of_impact;
+    if (rise > 0.43) return false;
+    if (rise < 0.015) {
+      // Nothing to climb, so what stopped us is a low lip with open ground beyond it. Hop it.
+      if (rise < -0.3) return false;
+      const hop = { x: this.pos.x + dx * 0.2, y: cy + 0.14, z: this.pos.z + dz * 0.2 };
+      if (w.intersectionWithShape(hop, ROT0, shape, undefined, CG.PLAYER, this.col, this.body)) return false;
+      this.pos.set(hop.x, hop.y - this.height / 2, hop.z);
+      this.body.setNextKinematicTranslation(hop);
+      return true;
+    }
+    // The landing has to be under the middle of the foot, not just a lip under its edge.
+    const floor = this.game.physics.raycast({ x: ahead.x, y: this.pos.y + UP, z: ahead.z }, { x: 0, y: -1, z: 0 }, UP + 0.1, CG.Q_WALK, this.body);
+    if (!floor || Math.abs(UP - floor.dist - rise) > 0.06 || floor.normal.y < 0.75) return false;
+    this.pos.y += rise + 0.01;
+    this.pos.x += dx * 0.05; this.pos.z += dz * 0.05;
+    this.body.setNextKinematicTranslation({ x: this.pos.x, y: this.pos.y + this.height / 2, z: this.pos.z });
+    return true;
+  }
 
   private headroom(): boolean {
     if (this.height >= STAND_H - 0.01) return true;

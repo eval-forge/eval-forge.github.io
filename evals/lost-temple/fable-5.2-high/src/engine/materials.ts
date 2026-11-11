@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { DARK_DEPTH } from '../core/sun';
-import { flameTex, foliage, glyphStone, masonry, mottled, softDot, wood } from './textures';
+import { flameTex, foliage, glyphStone, ironwork, masonry, mottled, softDot, wood } from './textures';
 
 /**
  * How a surface responds to sky light (hemisphere ambient and the sun/moon).
@@ -67,6 +67,7 @@ export class Materials {
     const bark = lazy(() => mottled([70, 52, 36], [96, 74, 50], [44, 34, 24], 101, 9, 256, 0.3));
     const planks = lazy(() => wood([150, 108, 66], 113));
     const glyph = lazy(() => glyphStone([150, 132, 100], 127));
+    const iron = lazy(() => ironwork(137));
     const plain = lazy(() => mottled([200, 200, 200], [230, 230, 230], [170, 170, 170], 131, 20, 128));
 
     this.defs = {
@@ -81,11 +82,11 @@ export class Materials {
       dirt: { scale: 4, make: () => std(dirt(), 1, 1.5)() },
       grass: { scale: 5, make: () => std(grass(), 1, 1.2)() },
       bark: { scale: 2, make: () => std(bark(), 1, 2.5)() },
-      wood: { scale: 1.6, make: () => std(planks(), 0.85, 1.6)() },
+      wood: { scale: 1.6, make: () => std(planks(), 0.85, 0.9)() },
       rope: { scale: 0.5, make: () => std(bark(), 1, 1, { color: 0xc8a878 })() },
       glyph: { scale: 2.4, make: () => std(glyph(), 0.9, 2.6)() },
-      gold: { scale: 2, make: () => std(plain(), 0.32, 0.6, { color: 0xe6b422, metalness: 0.9 })() },
-      iron: { scale: 2, make: () => std(plain(), 0.55, 1.0, { color: 0x4a4a50, metalness: 0.8 })() },
+      gold: { scale: 2, make: () => std(plain(), 0.38, 0.6, { color: 0xf0c038, metalness: 0.35 })() },
+      iron: { scale: 1.5, make: () => std(iron(), 0.6, 2.4, { metalness: 0.25 })() },
       bone: { scale: 1.5, make: () => std(plain(), 0.8, 0.8, { color: 0xd8d0b8 })() },
       clay: { scale: 1.5, make: () => std(plain(), 0.9, 1.0, { color: 0xa8623c })() },
       jade: { scale: 1.5, make: () => std(plain(), 0.3, 0.5, { color: 0x3fa672 })() },

@@ -52,20 +52,21 @@ export const cliffs: SceneDef = {
     b.box('rock', 19.4, -45, -47.5, 20.6, -0.5, -45.5, { tint: 0.85 });
     yield;
     b.piece(addVines(game, b, { x1: 16.2, x2: 18, z1: -44.7, z2: -44, y1: 0, y2: 3.5, nx: 0, nz: -1 }));
-    b.piece(new RopeBridge(game, b, 'cliffBridge', 18.2, 3.57, -41, 25, 3.57, -41, 1.8));
+    b.piece(new RopeBridge(game, b, 'cliffBridge', 18.2, 3.5, -41, 25, 3.55, -41, 1.8));
     b.piece(new RopeAnchor(game, b, 'cliffs', 17.5, 3.5, -28, -6, 0, 1));
     b.piece(addWind(game, { x1: 15, x2: 34, z1: -78, z2: -22, y1: -8, y2: 12, dx: 1, dz: 0, strength: 1 }));
     b.piece(new KillZone(game, 12, -90, 70, -10, -22, 'the long drop into the canyon'));
     spawnRocks(game, 'cliffs', [[17, 3.5, -34, 0.5], [17.5, 0, -62, 2.6], [17.6, 0, -47, 1.5]]);
 
     // --- Far side of the canyon and the mist below ---------------------------------------------
-    b.box('rock', 50, -45, -100, 58, 26, 0, { collide: false, tint: 0.75 });
-    b.box('rock', 54, 26, -90, 62, 40, -10, { collide: false, tint: 0.7 });
-    const mistGeo = new THREE.PlaneGeometry(60, 90);
+    // The far rim sits below the ledges, so the view from them is open sky over a mesa.
+    b.box('rock', 78, -45, -150, 110, -3, 50, { collide: false, tint: 0.75 });
+    b.box('rock', 92, -3, -120, 118, 7, 10, { collide: false, tint: 0.7 });
+    const mistGeo = new THREE.PlaneGeometry(120, 220);
     mistGeo.rotateX(-Math.PI / 2);
     const mistMat = new THREE.MeshBasicMaterial({ color: 0x9fb4c4, transparent: true, opacity: 0.85, depthWrite: false });
     const mist = new THREE.Mesh(mistGeo, mistMat);
-    mist.position.set(36, -26, -50);
+    mist.position.set(60, -26, -50);
     b.add(mist); b.track(mistGeo); b.track(mistMat);
     b.piece({ update: () => { const f = game.sky.grade.fog; mistMat.color.setRGB(f[0] * 0.9, f[1] * 0.9, f[2] * 0.9); } });
 

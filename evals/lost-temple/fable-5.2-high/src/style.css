@@ -56,12 +56,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color:
 .crosshair { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: rgba(255, 245, 220, 0.8); box-shadow: 0 0 3px #000; }
 .prompt { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); text-align: center; font-size: 17px; line-height: 1.5; opacity: 0; transition: opacity 0.12s; white-space: nowrap; }
 .key { display: inline-block; min-width: 24px; padding: 1px 7px; margin-right: 6px; border: 1px solid rgba(240, 225, 190, 0.7); border-radius: 4px; background: rgba(20, 16, 12, 0.7); font-family: ui-monospace, Menlo, monospace; font-size: 13px; text-align: center; }
-.toasts { position: absolute; left: 50%; top: 170px; transform: translateX(-50%); width: min(720px, 80vw); display: grid; gap: 6px; justify-items: center; }
+.toasts { position: absolute; left: 50%; top: 152px; transform: translateX(-50%); width: min(720px, 80vw); display: grid; gap: 6px; justify-items: center; }
 .toast { padding: 7px 16px; background: rgba(14, 11, 8, 0.72); border: 1px solid rgba(240, 225, 190, 0.22); border-radius: 3px; font-size: 16px; text-align: center; animation: toast-in 0.25s ease-out; transition: opacity 0.9s; }
 .toast.out { opacity: 0; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-.banner { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); text-align: center; opacity: 0; }
-.banner-name { font-size: 44px; letter-spacing: 0.14em; text-transform: uppercase; }
+.banner { position: absolute; left: 50%; top: max(30%, 262px); transform: translateX(-50%); text-align: center; opacity: 0; white-space: nowrap; }
+.banner-name { font-size: clamp(26px, 3.6vw, 44px); letter-spacing: 0.14em; text-transform: uppercase; }
 .banner-zone { font-size: 16px; color: var(--dim); letter-spacing: 0.2em; margin-top: 4px; }
 
 /* ---------- debug ---------- */

@@ -393,13 +393,29 @@ export class Game {
     requestAnimationFrame(loop);
   }
 
-  /** Advance the simulation by hand. Tests use this to run faster than real time. */
+  /** Advance the simulation by hand, one 60 Hz frame at a time with no rendering. Tests use it. */
   simulate(seconds: number): void {
     const steps = Math.round(seconds / FIXED_DT);
     for (let i = 0; i < steps && this.state === 'playing'; i++) {
+      this.handleActions();
       this.fixedUpdate(FIXED_DT);
-      if (i % 4 === 0) { this.player.update(FIXED_DT * 4); this.torch.update(FIXED_DT * 4); this.world.update(FIXED_DT * 4); }
+      this.player.update(FIXED_DT);
+      this.torch.update(FIXED_DT);
+      this.world.update(FIXED_DT);
+      this.input.endFrame();
     }
+  }
+
+  /** One-shot key actions that are not part of moving the player. */
+  private handleActions(): void {
+    const inp = this.input;
+    if (!inp.active) return;
+    if (inp.hit('pause')) { if (inp.virtualLock) this.pause(); else inp.exitLock(); }
+    if (inp.hit('torch')) this.torch.toggle();
+    if (inp.hit('flask')) this.torch.flask();
+    if (inp.hit('spare')) this.torch.spare();
+    if (inp.hit('drop')) this.relics.dropLast();
+    if (inp.hit('map')) this.map.toggle();
   }
 
   frame(now: number): void {
@@ -412,14 +428,7 @@ export class Game {
     if (inp.hit('debug')) this.debug.toggle();
 
     if (this.state === 'playing') {
-      if (inp.active) {
-        if (inp.hit('pause')) { if (inp.virtualLock) this.pause(); else inp.exitLock(); }
-        if (inp.hit('torch')) this.torch.toggle();
-        if (inp.hit('flask')) this.torch.flask();
-        if (inp.hit('spare')) this.torch.spare();
-        if (inp.hit('drop')) this.relics.dropLast();
-        if (inp.hit('map')) this.map.toggle();
-      }
+      this.handleActions();
       this.acc += dt * this.timeScale;
       let steps = 0;
       while (this.acc >= FIXED_DT && steps < 5 && this.state === 'playing') { this.fixedUpdate(FIXED_DT); this.acc -= FIXED_DT; steps++; }
