@@ -7,8 +7,8 @@ import { defaultSave, loadSave, writeSave, addScore, bankRun, SAVE_KEY, MAX_SCOR
 describe('sun path', () => {
   it('rises in the east, peaks at noon, sets in the west', () => {
     const dawn = sunDirection(0), noon = sunDirection(DAY_LENGTH / 2), dusk = sunDirection(DAY_LENGTH);
-    expect(dawn.x).toBeCloseTo(1); expect(dawn.y).toBeCloseTo(0);
-    expect(noon.y).toBeGreaterThan(0.85); expect(noon.x).toBeCloseTo(0);
+    expect(dawn.x).toBeGreaterThan(0.98); expect(dawn.y).toBeGreaterThan(0.05); expect(dawn.y).toBeLessThan(0.2);
+    expect(noon.y).toBeGreaterThan(0.85); expect(Math.abs(noon.x)).toBeLessThan(0.1);
     expect(dusk.x).toBeCloseTo(-1); expect(dusk.y).toBeCloseTo(0);
   });
   it('is a unit vector and goes below the horizon at night', () => {

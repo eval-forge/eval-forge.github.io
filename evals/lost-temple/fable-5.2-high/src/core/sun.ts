@@ -4,12 +4,15 @@ import { clamp01, lerp, type V3, type Zone } from './types';
 /** The sun's arc is tilted this far toward the south (+Z). */
 export const SUN_TILT = (25 * Math.PI) / 180;
 
+/** The run starts just after sunrise: the sun is already this fraction of its arc above the horizon. */
+export const DAWN_OFFSET = 0.045;
+
 /**
  * Unit vector pointing from the world toward the sun. Rises in the east (+X), peaks toward the
  * south (+Z) at noon, sets in the west (-X). After sunset it keeps going below the horizon.
  */
 export function sunDirection(t: number): V3 {
-  const theta = (Math.PI * t) / DAY_LENGTH;
+  const theta = Math.PI * (DAWN_OFFSET + (1 - DAWN_OFFSET) * (t / DAY_LENGTH));
   const s = Math.sin(theta);
   return { x: Math.cos(theta), y: s * Math.cos(SUN_TILT), z: s * Math.sin(SUN_TILT) };
 }

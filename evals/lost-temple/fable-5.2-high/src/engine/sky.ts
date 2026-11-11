@@ -4,6 +4,8 @@ import { gradeAt, skyExposure, sunDirection, type Grade } from '../core/sun';
 import type { Zone } from '../core/types';
 
 const MOON_DIR = new THREE.Vector3(0.35, 0.8, 0.5).normalize();
+// The grade is authored in friendly 0..3 numbers; these scale it to three's physical light units.
+const SUN_GAIN = 1.5, AMBIENT_GAIN = 2.3;
 
 const SKY_VERT = /* glsl */ `
 varying vec3 vDir;
@@ -118,7 +120,7 @@ export class Sky {
     if (!night) { this.dir.set(sd.x, sd.y, sd.z); lightScale = Math.min(1, Math.max(0, sd.y / 0.06)); }
     else { this.dir.copy(MOON_DIR); lightScale = Math.min(1, Math.max(0, (t - DAY_LENGTH - 2) / 8)); }
     this.sun.color.setRGB(g.sunColor[0], g.sunColor[1], g.sunColor[2]);
-    this.sun.intensity = g.sunIntensity * lightScale * this.sunExposure;
+    this.sun.intensity = g.sunIntensity * SUN_GAIN * lightScale * this.sunExposure;
 
     // Shadow frustum follows the camera, snapped to texels so shadows do not crawl as you walk.
     const texel = (this.shadowRange * 2) / this.sun.shadow.mapSize.x;
@@ -134,7 +136,7 @@ export class Sky {
 
     this.hemi.color.setRGB(g.ambSky[0], g.ambSky[1], g.ambSky[2]);
     this.hemi.groundColor.setRGB(g.ambGround[0], g.ambGround[1], g.ambGround[2]);
-    this.ambientIntensity = g.ambIntensity * this.ambientExposure;
+    this.ambientIntensity = g.ambIntensity * AMBIENT_GAIN * this.ambientExposure;
     this.hemi.intensity = this.ambientIntensity;
 
     const underground = zone === 'C';
