@@ -176,11 +176,11 @@ type Key = { p: number; g: Grade };
 const hex = (h: number): [number, number, number] => [((h >> 16) & 255) / 255, ((h >> 8) & 255) / 255, (h & 255) / 255];
 
 const KEYS: Key[] = [
-  { p: 0.0, g: { sunColor: hex(0xffb88a), sunIntensity: 1.6, hemiSky: hex(0x9fb0d8), hemiGround: hex(0x5a4436), hemiIntensity: 0.55, skyTop: hex(0x5d74a8), skyHorizon: hex(0xf2b394), fog: hex(0xc9a99a), fogDensity: 0.0085, exposure: 0.95, saturation: 0.92, contrast: 1.0, tint: [1.05, 0.96, 0.95] } },
-  { p: 0.18, g: { sunColor: hex(0xffe6c8), sunIntensity: 2.6, hemiSky: hex(0xb8d0f0), hemiGround: hex(0x5a5038), hemiIntensity: 0.75, skyTop: hex(0x4a82c8), skyHorizon: hex(0xbfd6e8), fog: hex(0xb6c6c8), fogDensity: 0.0055, exposure: 1.0, saturation: 1.0, contrast: 1.0, tint: [1.0, 1.0, 1.0] } },
-  { p: 0.5, g: { sunColor: hex(0xfff6ea), sunIntensity: 3.0, hemiSky: hex(0xc0d8f8), hemiGround: hex(0x605a40), hemiIntensity: 0.8, skyTop: hex(0x3a76c8), skyHorizon: hex(0xc8e0f0), fog: hex(0xc0d2d8), fogDensity: 0.0045, exposure: 1.0, saturation: 1.04, contrast: 1.02, tint: [1.0, 1.0, 0.99] } },
-  { p: 0.78, g: { sunColor: hex(0xffd8a0), sunIntensity: 2.6, hemiSky: hex(0xb0c4e0), hemiGround: hex(0x5a4a34), hemiIntensity: 0.7, skyTop: hex(0x4670b0), skyHorizon: hex(0xe8c898), fog: hex(0xc4b49a), fogDensity: 0.0055, exposure: 1.0, saturation: 1.05, contrast: 1.04, tint: [1.04, 0.99, 0.94] } },
-  { p: 0.92, g: { sunColor: hex(0xff7a38), sunIntensity: 2.2, hemiSky: hex(0x8a78a8), hemiGround: hex(0x4a2a20), hemiIntensity: 0.55, skyTop: hex(0x34386c), skyHorizon: hex(0xff7442), fog: hex(0xa4604a), fogDensity: 0.0075, exposure: 0.98, saturation: 1.12, contrast: 1.1, tint: [1.12, 0.92, 0.84] } },
+  { p: 0.0, g: { sunColor: hex(0xffb88a), sunIntensity: 2.0, hemiSky: hex(0x9fb0d8), hemiGround: hex(0x5a4436), hemiIntensity: 0.85, skyTop: hex(0x5d74a8), skyHorizon: hex(0xf2b394), fog: hex(0xc9a99a), fogDensity: 0.0085, exposure: 0.95, saturation: 0.92, contrast: 1.0, tint: [1.05, 0.96, 0.95] } },
+  { p: 0.18, g: { sunColor: hex(0xffe6c8), sunIntensity: 2.6, hemiSky: hex(0xb8d0f0), hemiGround: hex(0x5a5038), hemiIntensity: 0.95, skyTop: hex(0x4a82c8), skyHorizon: hex(0xbfd6e8), fog: hex(0xb6c6c8), fogDensity: 0.0055, exposure: 1.0, saturation: 1.0, contrast: 1.0, tint: [1.0, 1.0, 1.0] } },
+  { p: 0.5, g: { sunColor: hex(0xfff6ea), sunIntensity: 3.0, hemiSky: hex(0xc0d8f8), hemiGround: hex(0x605a40), hemiIntensity: 1.0, skyTop: hex(0x3a76c8), skyHorizon: hex(0xc8e0f0), fog: hex(0xc0d2d8), fogDensity: 0.0045, exposure: 1.0, saturation: 1.04, contrast: 1.02, tint: [1.0, 1.0, 0.99] } },
+  { p: 0.78, g: { sunColor: hex(0xffd8a0), sunIntensity: 2.6, hemiSky: hex(0xb0c4e0), hemiGround: hex(0x5a4a34), hemiIntensity: 0.9, skyTop: hex(0x4670b0), skyHorizon: hex(0xe8c898), fog: hex(0xc4b49a), fogDensity: 0.0055, exposure: 1.0, saturation: 1.05, contrast: 1.04, tint: [1.04, 0.99, 0.94] } },
+  { p: 0.92, g: { sunColor: hex(0xff7a38), sunIntensity: 2.2, hemiSky: hex(0x8a78a8), hemiGround: hex(0x4a2a20), hemiIntensity: 0.7, skyTop: hex(0x34386c), skyHorizon: hex(0xff7442), fog: hex(0xa4604a), fogDensity: 0.0075, exposure: 0.98, saturation: 1.12, contrast: 1.1, tint: [1.12, 0.92, 0.84] } },
   { p: 1.0, g: { sunColor: hex(0xc03a22), sunIntensity: 0.6, hemiSky: hex(0x4a3a6a), hemiGround: hex(0x2a1814), hemiIntensity: 0.3, skyTop: hex(0x181a3a), skyHorizon: hex(0x9a3a30), fog: hex(0x3e2428), fogDensity: 0.011, exposure: 0.92, saturation: 1.0, contrast: 1.12, tint: [1.1, 0.88, 0.9] } },
   { p: 1.06, g: { sunColor: hex(0x8090c8), sunIntensity: 0.35, hemiSky: hex(0x26304e), hemiGround: hex(0x0a0c12), hemiIntensity: 0.18, skyTop: hex(0x04060e), skyHorizon: hex(0x0e1626), fog: hex(0x080c14), fogDensity: 0.014, exposure: 0.88, saturation: 0.6, contrast: 1.08, tint: [0.84, 0.95, 1.16] } },
 ];
@@ -205,7 +205,7 @@ export function gradeAt(elapsed: number): Grade {
       for (const k of Object.keys(a.g) as (keyof Grade)[]) {
         const av = a.g[k] as any;
         const bv = b.g[k] as any;
-        out[k] = Array.isArray(av) ? lerp3(av, bv, s) : lerp(av, bv, s);
+        out[k] = Array.isArray(av) ? lerp3(av as [number, number, number], bv, s) : lerp(av, bv, s);
       }
       return out as Grade;
     }
