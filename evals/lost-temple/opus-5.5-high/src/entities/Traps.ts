@@ -374,7 +374,7 @@ export class DartTraps {
       const to = this.ctx.playerCenter().add(new THREE.Vector3(0, 0.25, 0)).sub(l.pos);
       if (to.length() < 18) {
         const aim = to.normalize();
-        if (aim.dot(l.dir) > 0.8) v.copy(aim).multiplyScalar(DART_SPEED); // within ~37°: aimed where you stand now
+        if (aim.dot(l.dir) > 0.9) v.copy(l.dir).lerp(aim, 0.75).normalize().multiplyScalar(DART_SPEED); // within ~25°: leans toward where you stand now
       }
       this.darts.push({ mesh, pos: l.pos.clone(), vel: v, life: 2.5 });
       this.ctx.audio.play('dart', l.pos, 0.9);

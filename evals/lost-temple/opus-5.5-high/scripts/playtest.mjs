@@ -23,7 +23,7 @@ await page.waitForTimeout(1500);
 await page.screenshot({ path: `${out}/00-menu.png` });
 
 const g = (fn, arg) => page.evaluate(fn, arg);
-const log = (label, st) => console.log(label.padEnd(18), JSON.stringify({ scene: st.scene, pos: st.pos.map((v) => +v.toFixed(2)), hp: +st.health.toFixed(0), hemi: +st.hemi.toFixed(3), sun: +st.sun.toFixed(3), sky: st.sky, bodies: st.bodies, prompt: st.prompt, mode: st.mode, outcome: st.outcome, guardians: st.guardians }));
+const log = (label, st) => console.log(label.padEnd(18), JSON.stringify({ scene: st.scene, pos: st.pos.map((v) => +v.toFixed(2)), hp: +st.health.toFixed(0), fps: +st.fps.toFixed(1), calls: st.calls, tris: st.tris, hemi: +st.hemi.toFixed(3), sun: +st.sun.toFixed(3), sky: st.sky, bodies: st.bodies, prompt: st.prompt, mode: st.mode, outcome: st.outcome, guardians: st.guardians }));
 
 await g(() => window.__game.startRun());
 // walk north from camp for 12 s

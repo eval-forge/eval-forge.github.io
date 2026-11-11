@@ -59,7 +59,13 @@ export class RuntimeKit implements SceneRuntime {
   private detachers: (() => void)[] = [];
   sconces: Sconce[] = [];
   constructor(public ctx: SceneCtx, public sceneId: SceneId) {}
-  add<T extends Attachable>(a: T): T { this.items.push(a); a.attach?.(); return a; }
+  add<T extends Attachable>(a: T): T {
+    this.items.push(a);
+    a.attach?.();
+    const i = a as unknown as Partial<Interactable>;
+    if (typeof i.prompt === 'function' && typeof i.act === 'function' && i.pos) this.interactables.push(i as Interactable); // levers
+    return a;
+  }
   every(fn: (dt: number) => void) { this.updaters.push(fn); }
   onDetach(fn: () => void) { this.detachers.push(fn); }
   interact(i: Interactable) { this.interactables.push(i); return i; }
