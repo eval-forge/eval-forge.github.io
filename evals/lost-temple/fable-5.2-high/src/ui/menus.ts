@@ -1,4 +1,4 @@
-import { formatTime } from '../core/clock';
+import { DAY_LENGTH, formatTime } from '../core/clock';
 import { UPGRADES, buyUpgrade, maxLevel, upgradeCost, type UpgradeId } from '../core/economy';
 import type { Settings } from '../core/save';
 import type { Game } from '../game/Game';
@@ -160,7 +160,7 @@ export class Menus {
     if (!r) { this.show('main'); return; }
     const titles = { escaped: 'You made it out', caught: 'The guardians took you', killed: 'The temple killed you', entombed: 'Sealed in the dark' } as const;
     const sub = r.outcome === 'escaped'
-      ? (r.cause.startsWith('outside') ? 'Night fell with you still outside. You keep what you found out there.' : 'Out through the Great Door with the sun going down behind you.')
+      ? (r.cause.startsWith('outside') ? 'Night fell with you still outside. You keep what you found out there.' : r.time >= DAY_LENGTH ? 'Under the falling door with the dark at your heels.' : r.time > DAY_LENGTH * 0.6 ? 'Out through the Great Door with the sun going down behind you.' : 'Out through the Great Door with daylight to spare.')
       : `Cause: ${r.cause}. Everything in the satchel is lost.`;
     this.root.classList.add(r.outcome === 'escaped' ? 'good' : 'bad');
     this.title(titles[r.outcome], sub);

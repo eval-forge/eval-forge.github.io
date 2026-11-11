@@ -159,8 +159,9 @@ export const UPGRADES: UpgradeDef[] = [
     levels: ['11 m radius, 4:00 burn', '13 m radius, 5:20 burn', '15 m radius, 7:00 burn'] },
   { id: 'fuel', name: 'Oil Flasks', desc: 'Start each run with spare fuel.', costs: [400, 1200],
     levels: ['No spare flasks', '1 flask', '2 flasks'] },
-  { id: 'rope', name: 'Climbing Rope', desc: 'Drop a rope at iron anchor rings to open new lines.', costs: [800, 2000],
-    levels: ['No rope', '1 rope', '2 ropes'] },
+  // One level: there is exactly one anchor ring in the temple (outer cliffs), so a second rope would buy nothing.
+  { id: 'rope', name: 'Climbing Rope', desc: 'Tie it off at the iron ring on the outer cliffs to reach the shelf below.', costs: [800],
+    levels: ['No rope', '1 rope'] },
   { id: 'satchel', name: 'Satchel', desc: 'Carry more before the weight drags you down.', costs: [900, 2600],
     levels: ['12 kg', '18 kg', '26 kg'] },
 ];

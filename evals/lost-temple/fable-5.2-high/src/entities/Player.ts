@@ -97,6 +97,15 @@ export class Player {
   get eyePos(): THREE.Vector3 { return _t.set(this.pos.x, this.pos.y + this.eye, this.pos.z); }
   get center(): THREE.Vector3 { return new THREE.Vector3(this.pos.x, this.pos.y + this.height / 2, this.pos.z); }
   get rigidBody(): RAPIER.RigidBody { return this.body; }
+  /** Put the player on a climbable at a given spot, facing the wall (used to get onto a rope from above). */
+  startClimb(c: Climbable, x: number, y: number, z: number): void {
+    this.pos.set(x, y, z); this.vel.set(0, 0, 0);
+    this.mantle = null; this.crouching = false; this.climbing = c; this.climbCooldown = 0;
+    this.airPeakY = y; this.grounded = false;
+    this.yaw = Math.atan2(c.nx, c.nz); this.pitch = -0.5;
+    this.body.setTranslation({ x, y: y + this.height / 2, z }, true);
+  }
+
   get busyHands(): boolean { return this.climbing !== null || this.mantle !== null || this.swimming; }
 
   forward(out = new THREE.Vector3()): THREE.Vector3 {
@@ -264,10 +273,15 @@ export class Player {
 
     // Climbing
     this.climbCooldown -= dt;
-    if (!this.climbing && this.climbCooldown <= 0 && ml > 0.1 && !this.held) {
+    if (!this.climbing && this.climbCooldown <= 0 && !this.held) {
       const c = game.climbableAt(this.pos.x, this.pos.y + 0.9, this.pos.z);
-      // Start climbing when pushing into the wall.
-      if (c && wishX * -c.nx + wishZ * -c.nz > 0.35 && this.pos.y < c.y2 - 0.3) { this.climbing = c; this.vel.set(0, 0, 0); }
+      if (c && this.pos.y < c.y2 - 0.3) {
+        // Start climbing when pushing into the wall, or catch hold when dropping past it
+        // (which is how you get onto a rope or vines from the ledge above).
+        const pushing = ml > 0.1 && wishX * -c.nx + wishZ * -c.nz > 0.35;
+        const falling = !this.grounded && this.vel.y < -0.5;
+        if (pushing || falling) { this.climbing = c; this.vel.set(0, 0, 0); this.airPeakY = this.pos.y; }
+      }
     }
     if (this.climbing) { this.stepClimb(dt, mx, mz, load, drain); return; }
 
