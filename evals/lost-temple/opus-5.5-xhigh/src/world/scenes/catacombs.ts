@@ -51,9 +51,7 @@ export const catacombs: SceneDef = {
           const holes = DART_PLATES[i].holes;
           for (let k = 0; k < n; k++) {
             const hz = holes[k % holes.length];
-            setTimeout(() => {
-              if (game.state === 'playing') game.fx.dart(new THREE.Vector3(-53.9, FLOOR_Y + DART_HEIGHT, hz), new THREE.Vector3(1, 0, 0), 24);
-            }, 120 + k * 90);
+            game.fx.after(0.12 + k * 0.09, () => game.fx.dart(new THREE.Vector3(-53.9, FLOOR_Y + DART_HEIGHT, hz), new THREE.Vector3(1, 0, 0), 24));
           }
         }
       }

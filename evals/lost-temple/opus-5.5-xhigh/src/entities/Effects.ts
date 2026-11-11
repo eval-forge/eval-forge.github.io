@@ -43,6 +43,8 @@ const MAX_PUFFS = 160;
 export class Effects {
   darts: Dart[] = [];
   debris: Debris[] = [];
+  /** Actions scheduled in simulation time (dart volleys), so pausing delays them instead of cancelling them. */
+  private timers: { t: number; fn: () => void }[] = [];
   owner: Owner;
   private puffs: Puff[] = [];
   private dustMeshes: Record<'lit' | 'dark', THREE.InstancedMesh>;
@@ -96,17 +98,33 @@ export class Effects {
     this.game.audio.dartWhoosh(from);
   }
 
+  /** Run `fn` after `seconds` of simulated time (fixed steps), not wall-clock time. */
+  after(seconds: number, fn: () => void) {
+    this.timers.push({ t: seconds, fn });
+  }
+
   /** Fire a volley from several points at the player's chest height. */
   volleyAt(sources: THREE.Vector3[], target: THREE.Vector3, delayStep = 0.12) {
     sources.forEach((s, i) => {
-      setTimeout(() => {
-        if (this.game.state !== 'playing') return;
+      this.after(i * delayStep, () => {
         const dir = target.clone().sub(s);
         dir.y = 0; // horizontal: crouch to dodge
         if (dir.lengthSq() < 0.01) return;
         this.dart(s, dir.normalize());
-      }, i * delayStep * 1000);
+      });
     });
+  }
+
+  private updateTimers(dt: number) {
+    if (!this.timers.length) return;
+    const due: (() => void)[] = [];
+    this.timers = this.timers.filter((tm) => {
+      tm.t -= dt;
+      if (tm.t > 0) return true;
+      due.push(tm.fn);
+      return false;
+    });
+    for (const fn of due) fn();
   }
 
   private updateDarts(dt: number) {
@@ -286,6 +304,7 @@ export class Effects {
   }
 
   fixedUpdate(dt: number) {
+    this.updateTimers(dt);
     this.updateDarts(dt);
     this.updateDebris(dt);
   }
@@ -296,6 +315,7 @@ export class Effects {
   }
 
   clear() {
+    this.timers = [];
     for (const d of this.darts) this.game.scene.remove(d.mesh);
     this.darts = [];
     for (const d of [...this.debris]) this.removeDebris(d);

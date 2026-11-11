@@ -8,11 +8,10 @@ at runtime.
 
 ```
 src/
-├── main.ts                 boot: init Rapier WASM, create Game, wire UI
+├── main.ts                 boot: create Game (inits Rapier WASM), show the main menu
 ├── core/                   tiny shared utilities (no Three, no Rapier)
-│   ├── config.ts           every tuning number in one place
 │   ├── rng.ts              seeded PRNG (mulberry32) + weighted pick
-│   └── events.ts           typed event bus (noise, toast, trap, gate, ...)
+│   └── events.ts           typed event bus
 ├── logic/                  PURE game rules: no DOM, no Three, no Rapier. Unit-tested.
 │   ├── economy.ts          relic table, zone value, satchel, haul, rolls per slot
 │   ├── clock.ts            day clock, countdown phases/thresholds, sun position, grading keys
@@ -26,41 +25,49 @@ src/
 │   ├── renderer.ts         WebGLRenderer, quality presets, composer + grading pass
 │   ├── materials.ts        material factory; patches shaders with a per-material
 │   │                       "sky mask" so Zone C receives no sun/sky/hemisphere light
-│   ├── textures.ts         procedural canvas textures (+ normal maps from height)
-│   ├── physics.ts          Rapier world, body registry (owner scene, kind, data), queries
+│   ├── textures.ts         procedural canvas textures (+ normal maps from height, parchment)
+│   ├── physics.ts          Rapier world, collision groups, body registry, queries
 │   ├── input.ts            keyboard, mouse, pointer lock, gamepad → one action state
 │   └── audio.ts            WebAudio graph, procedural sfx, ambience, music, 3D panners
 ├── world/
-│   ├── layout.ts           THE level: floor polygons, regions, gates, sconces, relic slots,
+│   ├── layout.ts           THE level: floor rectangles, regions, gates, sconces, relic slots,
 │   │                       traps, for all 7 scenes in one world coordinate space
-│   ├── build.ts            builders: floors, auto-walls from the floor grid, ceilings,
-│   │                       ramps, props; returns meshes + colliders tagged by scene
+│   ├── query.ts            point queries over the layout: floor at, scene at, exposure at;
+│   │                       builds the global navmesh from the floor list
+│   ├── build.ts            builders: walls/floors/ceilings from the floor grid, merged
+│   │                       (spatially chunked) meshes + colliders tagged by scene
+│   ├── terrain.ts          outdoor height function → mesh + Rapier heightfield; ruin props
+│   ├── nature.ts           instanced trees, palms, ferns, grass, vines, water surfaces
+│   ├── shafts.ts           visible sun shafts through the hall roof holes
 │   ├── SceneManager.ts     streaming: decides the loaded set, runs scene builders as
-│   │                       time-sliced generators (≈4 ms/frame), unloads + saves state
+│   │                       time-sliced generators, unloads + saves state
 │   ├── sky.ts              sky dome shader, sun + moon lights, fog, grading keyframes
-│   ├── vegetation.ts       instanced trees, palms, ferns, grass, vines
-│   ├── water.ts            animated water surface material + volumes
-│   └── scenes/             one module per scene: build(ctx) generator + update(dt)
-│       ├── jungle.ts  courtyard.ts  cliffs.ts
-│       ├── halls.ts   sanctum.ts
-│       └── catacombs.ts  vault.ts
+│   └── scenes/             one module per scene: build(ctx) generator + per-frame hooks;
+│       ├── jungle.ts  courtyard.ts  cliffs.ts        each scene also owns its own traps
+│       ├── halls.ts   sanctum.ts                     and mechanisms (sundial, sun-stones,
+│       └── catacombs.ts  vault.ts                    boulder, blades, flood, drawbridge…)
 ├── entities/
 │   ├── Player.ts           Rapier kinematic character controller, run/crouch/jump,
-│   │                       stamina, health, vines, mantling, swimming, fall damage
-│   ├── Torch.ts            held torch mesh, flame shader, point light w/ shadows, sconces
+│   │                       stamina, health, vines, mantling, swimming, fall damage, pushing
+│   ├── Torch.ts            held torch mesh, flame shader, point light w/ shadows, sconce pool
 │   ├── Items.ts            loot + props as rigid bodies, satchel, hands (grab/carry/throw)
-│   ├── Interactables.ts    doors, seals, levers, sundial, plates, pedestals, kick-wall
-│   ├── Traps.ts            darts, blades, boulder, crumbling floor, sanctum debris, sun-stones
+│   ├── Interactables.ts    pedestals (weight-plate traps), sconces, shared door/lever helpers
+│   ├── Effects.ts          darts (swept rays), falling debris bodies, dust, sparks
 │   ├── Bridge.ts           jointed rope bridge
-│   └── Guardians.ts        guardian bodies, animation, perception → brain → navmesh steering
+│   ├── Guardians.ts        guardian bodies, perception → brain → navmesh steering
+│   └── meshes.ts           procedural relic and prop meshes (lathes, tori, boxes)
 ├── game/
-│   ├── Game.ts             owns everything; fixed-step physics loop; run lifecycle
-│   └── RunState.ts         per-run persistent state (flags, taken slots, stash, carried)
+│   ├── Game.ts             owns everything; fixed-step physics loop; run lifecycle,
+│   │                       interaction, clock consequences, ghost replay, debug hooks
+│   └── RunState.ts         per-run persistent state (flags, item transforms, stash, carried)
 └── ui/
-    ├── ui.ts               menus (main, pause, settings, shop, scores, results), toasts
+    ├── menus.ts            main, pause, settings, shop, scores, controls, results, loading
     ├── hud.ts              HUD DOM + the stone sundial clock (canvas)
-    ├── mapview.ts          hand-drawn map that fills in as you explore
-    └── debug.ts            debug overlay (FPS, bodies, scene, guardians), time warp
+    ├── mapview.ts          parchment map that fills in as you explore
+    ├── debug.ts            debug overlay (F3) and warp / time-skip panel (F4)
+    └── styles.css          all UI styling (system serif fonts, no external assets)
+scripts/playtest.mjs        headless Chromium playtest (screenshots, perf, Zone C black check)
+tests/*.test.ts             vitest suites for logic/
 ```
 
 ### Why the split
@@ -80,7 +87,7 @@ requestAnimationFrame
  ├─ accumulate dt; while (acc ≥ 1/60): fixedStep(1/60)
  │    ├─ player.fixedUpdate          (KCC move, collisions → pushes, plank/tile contacts)
  │    ├─ items.fixedUpdate           (held object spring, plates query loads)
- │    ├─ traps.fixedUpdate           (darts, blades, boulder, crumble, debris)
+ │    ├─ fx.fixedUpdate + scene.fixed (darts, debris, blades, boulder, crumble, plates)
  │    ├─ guardians.fixedUpdate       (perception → brain → navmesh path follow)
  │    └─ physics.world.step()
  ├─ runClock.update(dt)              (logic/clock: phase changes fire events)
@@ -164,3 +171,25 @@ state machines, and the navmesh (paths respect gates and walls).
 A Playwright script (`scripts/playtest.mjs`) boots the built game in headless
 Chromium, teleports through every scene, takes screenshots, samples frame times,
 and checks that a Zone C frame with the torch out is pure black.
+
+## Deviations from the first draft of this document
+
+This file was written before the code. What changed while building:
+
+* `core/config.ts` was never created; tuning numbers live next to the rule that uses
+  them in `logic/*` (and are tested there).
+* `vegetation.ts` and `water.ts` were merged into `world/nature.ts`.
+* There is no `entities/Traps.ts`: each scene module builds and runs its own traps
+  (`halls.ts` has the blades, `catacombs.ts` the boulder, crumbling floor and darts,
+  and so on), with the shared projectile/debris code in `entities/Effects.ts`.
+* `ui/ui.ts` became `ui/menus.ts`.
+* Added `world/query.ts`, `world/terrain.ts`, `world/shafts.ts`, `entities/meshes.ts`.
+* Vegetation instances live on render layer 1, which the torch's cube shadow camera
+  does not see (the sun's shadow camera does). Without that, the torch shadow pass
+  re-rendered every fern six times per frame.
+* The torch shadow map refreshes every other frame (about 30 Hz), which is invisible
+  with the flicker and halves the cost of the biggest shadow pass.
+* The character controller does not push dynamic bodies itself
+  (`setApplyImpulsesToDynamicBodies(false)`); the bridge applies the player's weight
+  to the plank under them explicitly, and blocks are pushed by setting their velocity.
+  The built-in impulses made the rope bridge oscillate and throw the player.

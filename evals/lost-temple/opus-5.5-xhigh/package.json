@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "playtest": "node scripts/playtest.mjs"
+    "playtest": "node scripts/playtest.mjs",
+    "mechanics": "node scripts/mechanics.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",
