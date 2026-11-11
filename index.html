@@ -277,6 +277,88 @@ Make this all into one single contained HTML file that I can download from the c
           </details>
           </div>
         </details>
+        <details class="test">
+          <summary class="test-heading">
+            <h3 id="test-title-3">Test #3 — Auric Voyage</h3>
+            <span class="test-controls"><span class="tag">Fantasy ship · Three.js</span><span class="test-toggle"><span class="collapse-label">Collapse</span><span class="expand-label">Expand</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+          </summary>
+          <div class="test-content">
+          <p class="test-description">Four Claude models, one prompt, one reference image, one standalone HTML file each: an ornate golden fantasy ship with a curled figurehead, sculptural sunset clouds, a furnished deck, a captain's cabin and a time-of-day dock. Scored on quality, truthness to the prompt and time.</p>
+          <p class="test-description test-link"><a href="https://eval-forge.github.io/claude-battle">Full ranking and live previews on the Claude Battle page ↗</a></p>
+          <div class="results" aria-label="Model results">
+            <a class="result" href="https://eval-forge.github.io/claude-battle/fable-5-2.html" aria-label="View Claude Fable 5.2 result, ranked first">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">01</span></div>
+              <h4>Claude Fable 5.2</h4><p class="setting">high · score 92.4</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a class="result" href="https://eval-forge.github.io/claude-battle/opus-5-5.html" aria-label="View Claude Opus 5.5 result, ranked second">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">02</span></div>
+              <h4>Claude Opus 5.5</h4><p class="setting">high · score 81.3</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a class="result" href="https://eval-forge.github.io/claude-battle/sonnet-5-5.html" aria-label="View Claude Sonnet 5.5 result, ranked third">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">03</span></div>
+              <h4>Claude Sonnet 5.5</h4><p class="setting">high · score 76.6</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+            <a class="result" href="https://eval-forge.github.io/claude-battle/haiku-5-5.html" aria-label="View Claude Haiku 5.5 result, ranked fourth">
+              <div class="result-top"><span class="provider">Anthropic</span><span class="index">04</span></div>
+              <h4>Claude Haiku 5.5</h4><p class="setting">high · score 32.5</p>
+              <div class="result-bottom"><span>Explore result</span><span class="arrow" aria-hidden="true">↗</span></div>
+            </a>
+          </div>
+          <details class="prompt">
+            <summary class="prompt-heading"><h4 id="prompt-title-3">The original prompt</h4><span class="prompt-controls">Same prompt · All four models<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+            <pre>Auric Voyage: Fantasy sailing ship in Three.js
+
+Create from scratch an exceptionally beautiful, fully interactive 3D fantasy sailing ship scene in Three.js, using the attached reference image as the primary and authoritative visual reference.
+
+01 Ship and silhouette
+Recreate the image's distinctive ship design, proportions, composition, colors, and atmosphere as faithfully as possible. This is not a conventional pirate ship. It is an enormous, ornate fantasy vessel with an unusually sculpted hull, sweeping golden woodwork, intricate spiral carvings, a dramatic curled figurehead, deep teal lower hull, towering multi-level stern galleries, and magnificent overlapping golden sails.
+
+Pay particular attention to the ship's silhouette. Preserve its exaggerated sweeping curves, enormous sails, elegant bow, intricate decorations, and unusual architectural proportions. Model the ship with detailed 3D geometry, including carved wooden panels, railings, balconies, arched windows, ropes, rigging, masts, deck structures, cannons, lanterns, and fine ornamental details. Do not simplify it into a generic wooden boat.
+
+02 Clouds, sea, and motion
+The sky and clouds are equally important as the ship. Recreate the reference's spectacular, enormous sculptural cloud formations, with swirling layered shapes, dramatic depth, dark blue-teal shadows, and brilliant golden sunlight illuminating their edges. The clouds should frame the vessel like a grand fantasy painting, not resemble ordinary scattered procedural clouds.
+
+Create a luminous golden sunset with a low sun near the horizon, turquoise-blue openings in the sky, atmospheric haze, and distant sailing ships. The ocean should have beautiful gold and teal reflections, layered ripples, realistic surface movement, subtle foam, and a convincing wake around the hull.
+
+Preserve the reference's painterly, cinematic fantasy aesthetic while translating it into a richly detailed, dimensional 3D environment. Use sophisticated materials, carefully sculpted geometry, volumetric-looking clouds, soft atmospheric scattering, beautiful reflections, cinematic lighting, and restrained color grading.
+
+Animate the ship sailing naturally through the water, with believable forward movement, gentle rocking, responsive sails, moving rigging, flowing water, foam, and drifting clouds. Keep the motion smooth and lively rather than artificially slow.
+
+03 Camera and time of day
+Allow users to orbit around the ship, zoom in to inspect the carvings and deck, and explore the vessel from different perspectives. Use a beautiful default camera angle closely matching the reference image, with the entire ship and dramatic cloud formations clearly visible.
+
+Add an icon-only dock with daylight, golden sunset, and moonlit night presets and a continuous time-of-day slider. Change the sky, ship lighting, and reflected light together. At night, show stars, moonlit sails, warm lanterns, and a silver path on the sea. Reflect the actual ship, sky, and distant fleet in the moving water. Break up their reflections with the waves and add glints from the sun and moon.
+
+04 Deck and cabin
+Frame the ship large by default and give users separate exterior, deck, and captain's cabin views. Furnish the deck with barrels, lashed crates, rope coils, rigging tackle, cannons, lanterns, a compass binnacle, and a working helm. Clicking the helm or wind icon should fill the sails and change the ship's speed and wake.
+
+Build a furnished 3D captain's cabin with carved wood, arched windows looking onto the moving sea, a chart table, candles, shelves, a compass rug, and a brass armillary globe that spins when clicked. Let users orbit and zoom inside. Have the onboard camera follow the ship's motion. Keep the controls text-free and frame the entire ship on narrow screens.
+
+05 Build and test
+Start from a completely blank project. Do not reuse previous scenes. Research suitable ship construction, sail geometry, fantasy vessel modeling, stylized ocean rendering, and volumetric cloud techniques. Automatically use the most appropriate available skills, tools, libraries, shaders, and reliable assets to achieve the best result.
+
+Deliver everything as one working standalone index.html file, embedding assets and dependencies as much as reasonably possible.
+
+No visible text anywhere in the scene: no titles, logos, labels, descriptions, credits, or control instructions.
+
+Avoid crude primitive geometry, flat sails, generic clouds, simplified ship silhouettes, muddy materials, and poor lighting. Prioritize reference fidelity and visual quality over unnecessary extra features.
+
+Actually open and test the finished project in a desktop browser. Capture screenshots, inspect the rendered result against the attached image, check the browser console, and fix visual or technical problems.
+
+06 Final verification
+The ship must retain the reference's distinctive golden carved hull, curled figurehead, towering decorative stern, layered golden sails, enormous sculptural clouds, and luminous sunset composition. If the result resembles an ordinary pirate ship or the clouds look generic, revise it before delivering.
+
+REFERENCE FIDELITY IS THE HIGHEST PRIORITY.
+
+Before adding decorative details, establish the exact overall silhouette, proportions, and composition shown in the image. The exaggerated curled bow, sweeping carved hull, towering stern, enormous overlapping sails, and monumental swirling cloud formations must be immediately recognizable. Treat the clouds as a major 3D artistic feature, not background decoration. After rendering, compare actual browser screenshots against the reference and iteratively correct differences in ship geometry, sail arrangement, cloud shapes, lighting, and colors. Do not consider the project finished merely because it runs successfully. The final scene should look unmistakably inspired by this specific image, even when viewed from other camera angles.
+
+Finish with only a brief response and the working file.</pre>
+          </details>
+          </div>
+        </details>
       </section>
     </main>
     <footer><strong>eval forge</strong><a href="https://github.com/eval-forge">Find us on GitHub <span aria-hidden="true">↗</span></a></footer>
