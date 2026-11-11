@@ -371,6 +371,11 @@ export class DartTraps {
       this.ctx.scene.add(mesh);
       // aim a little at the player when close (darts are triggered by them)
       const v = l.dir.clone().multiplyScalar(DART_SPEED);
+      const to = this.ctx.playerCenter().add(new THREE.Vector3(0, 0.25, 0)).sub(l.pos);
+      if (to.length() < 18) {
+        const aim = to.normalize();
+        if (aim.dot(l.dir) > 0.8) v.copy(aim).multiplyScalar(DART_SPEED); // within ~37°: aimed where you stand now
+      }
       this.darts.push({ mesh, pos: l.pos.clone(), vel: v, life: 2.5 });
       this.ctx.audio.play('dart', l.pos, 0.9);
     }
@@ -385,7 +390,8 @@ export class DartTraps {
       d.pos.add(step);
       d.mesh.position.copy(d.pos);
       d.life -= dt;
-      if (distToPlayer(this.ctx, d.pos) < 0.42) {
+      const mid = d.pos.clone().addScaledVector(step, -0.5);
+      if (distToPlayer(this.ctx, d.pos) < 0.42 || distToPlayer(this.ctx, mid) < 0.42) {
         this.ctx.damage(DAMAGE.dart, 'a poisoned dart', d.vel.clone().normalize().multiplyScalar(1.5));
         this.ctx.audio.play('hit', d.pos, 1);
         this.kill(i);

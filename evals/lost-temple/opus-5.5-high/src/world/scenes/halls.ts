@@ -83,7 +83,9 @@ export const halls: SceneDef = {
     // ---------------------------------------------- north hall
     b.aabb(-6.5, 0, -63, 6.5, 8, -62.8, 'carved', { collide: false });
     fallenPillar(b, 4, -52, 0, 6, 1.4, 0.6, 'sandstone');
-    rubble(b, 12, -61, 29, -49, 0, 14, 73, 'sandstone', 0.8);
+    // rubble kept out of the block's lane (z -57..-51) so it can be shoved onto the plate
+    rubble(b, 13, -61.5, 29, -58, 0, 9, 73, 'sandstone', 0.8);
+    rubble(b, 14, -50.2, 23, -49, 0, 3, 75, 'sandstone', 0.6);
     // ---------------------------------------------- west wing (sealed; only reached via the servants' passage)
     rubble(b, -29, -50, -14, -16, 0, 50, 74, 'dungeon', 1.0);
     skullPile(b, -20, -33, 0, 1);
@@ -117,7 +119,7 @@ export const halls: SceneDef = {
     // sanctum gate held by the block on the plate
     const gate = rt.add(new Gate(ctx, 'sanctumGate', new THREE.Vector3(0, 3, -62.5), new THREE.Vector3(6, 6, 1.1), 5.8, 4, 'iron'));
     const jammed = () => !!run.entities.get('gateJammed');
-    rt.add(new PressurePlate(ctx, 26, -55, 0, 2.6, 2.6, 150, () => {
+    rt.add(new PressurePlate(ctx, 27.4, -54.8, 0, 4.2, 3.2, 150, () => {
       gate.set(1);
       ctx.setFlag('sanctumGateHeld');
       ctx.message('Somewhere a gate grinds upward.');
