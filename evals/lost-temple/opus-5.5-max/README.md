@@ -73,10 +73,14 @@ node scripts/door.mjs             # push a block onto one plate, stand on the ot
 node scripts/heist.mjs            # stash a relic, bank it, leave, check results and save
 node scripts/darkness.mjs hall    # wait in the entrance hall at nightfall and get caught
 node scripts/darkness.mjs outside # be outside at nightfall: escaped, door shut behind you
+node scripts/darkness.mjs inside  # hide in the catacombs at nightfall: caught or entombed
 node scripts/traps.mjs            # pedestal swap, darts, crumbling tiles, blades, idol collapse, boulder
 node scripts/route.mjs both       # walk the way in and the way out along the navmesh, report snags
 node scripts/climb.mjs            # mantle the cliff ledges, climb the vines, throw a sandbag
 node scripts/bridge.mjs walk      # walk the rope bridge while the planks crack and drop
+node scripts/bridge.mjs flood     # the catacomb plank bridge: cross it lit, then stop on it and fall in
+node scripts/hazards.mjs          # sunstones, noise collapse, flooded chamber, torch blow-outs, wind, gamepad, ghost
+node scripts/audio.mjs            # signal on every mixer bus, every listed effect, the final-minute cues
 node scripts/supplies.mjs         # pick up every hidden oil flask and spare torch
 node scripts/menus.mjs            # outfitter purchase, settings, pause, abandon, results, high scores
 node scripts/tour.mjs medium      # FPS, frame cost, draw calls and triangles at a stop in every scene

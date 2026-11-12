@@ -145,11 +145,33 @@ export class Guardian {
     const nx = this.pos.x + (dx / l2) * step;
     const nz = this.pos.z + (dz / l2) * step;
     // stay on the mesh: the new spot must be on an enabled polygon close in height
-    const poly = nav.findPoly(nx, this.pos.y + 0.5, nz, 1.2);
+    let mx = nx;
+    let mz = nz;
+    let poly = nav.findPoly(mx, this.pos.y + 0.5, mz, 1.2);
+    if (!poly && this.path && nav.findPoly(this.pos.x, this.pos.y + 0.5, this.pos.z, 1.2)) {
+      // the straight step clips the corner of a doorway (the polygons are axis-aligned
+      // rectangles and a funnel corner can sit just past one): slide along one axis toward the
+      // waypoint instead of standing there for the rest of the night
+      const ex = wx - this.pos.x;
+      const ez = wz - this.pos.z;
+      const sx = Math.sign(ex) * Math.min(step, Math.abs(ex));
+      const sz = Math.sign(ez) * Math.min(step, Math.abs(ez));
+      const tries: [number, number][] = Math.abs(ex) >= Math.abs(ez) ? [[sx, 0], [0, sz]] : [[0, sz], [sx, 0]];
+      for (const [ox, oz] of tries) {
+        if (Math.abs(ox) + Math.abs(oz) < 1e-5) continue;
+        const p = nav.findPoly(this.pos.x + ox, this.pos.y + 0.5, this.pos.z + oz, 1.2);
+        if (p) {
+          poly = p;
+          mx = this.pos.x + ox;
+          mz = this.pos.z + oz;
+          break;
+        }
+      }
+    }
     if (poly) {
-      this.pos.x = nx;
-      this.pos.z = nz;
-      const gy = polyHeight(poly, nx, nz);
+      this.pos.x = mx;
+      this.pos.z = mz;
+      const gy = polyHeight(poly, mx, mz);
       this.pos.y += (gy - this.pos.y) * Math.min(1, dt * 12);
       this.vy = 0;
     } else if (!this.path || !nav.findPoly(this.pos.x, this.pos.y + 0.5, this.pos.z, 1.2)) {

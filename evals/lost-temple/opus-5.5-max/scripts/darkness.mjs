@@ -54,7 +54,12 @@ while (Date.now() - t0 < 600000) {
 await page.waitForFunction(() => window.lostTemple.state().state === 'results', null, { timeout: 60000 }).catch(() => console.log('!! no results screen'));
 const s = await st(page);
 console.log('woke:', sawWake, 'end:', s.state);
-console.log('results:', (await page.evaluate(() => document.querySelector('.screen')?.innerText || '')).replace(/\n+/g, ' | ').slice(0, 400));
+const resultsText = (await page.evaluate(() => document.querySelector('.screen')?.innerText || '')).replace(/\n+/g, ' | ');
+console.log('results:', resultsText.slice(0, 400));
+// what each scenario should end in
+const expected = { outside: /^You made it out/, hall: /^Caught/, inside: /^(Caught|Entombed)/ }[mode];
+const ok = sawWake && expected.test(resultsText);
+console.log(`DARKNESS ${mode.toUpperCase()}: ${ok ? 'PASS' : 'FAIL'} (expected ${expected})`);
 await shot(page, `darkness-${mode}-results`);
 console.log('errors:', errors.length ? errors.filter((e) => !/ReadPixels/.test(e)).slice(0, 30).join('\n') : 'none');
 await browser.close();
