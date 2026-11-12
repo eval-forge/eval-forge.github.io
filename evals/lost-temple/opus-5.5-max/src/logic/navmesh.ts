@@ -35,6 +35,11 @@ export interface PathOptions {
   /** Cost multiplier for entering a polygon; Infinity makes it impassable. */
   cost?: (p: NavPoly) => number;
   maxIterations?: number;
+  /**
+   * When the goal cannot be reached (a closed gate), return a path to the reachable polygon
+   * closest to it instead of null. Guardians use this to press up against shut doors.
+   */
+  partial?: boolean;
 }
 
 const CELL = 4;
@@ -266,6 +271,8 @@ export class NavMesh {
     heap.push(s.poly.id, Math.hypot(ep[0] - sp[0], ep[2] - sp[2]));
     let found = false;
     let it = 0;
+    let bestId = s.poly.id;
+    let bestH = Math.hypot(ep[0] - sp[0], ep[2] - sp[2]);
     while (heap.size && it++ < maxIt) {
       const cur = heap.pop()!.id;
       if (closed[cur]) continue;
@@ -273,6 +280,15 @@ export class NavMesh {
       if (cur === e.poly.id) {
         found = true;
         break;
+      }
+      const curPoly = this.polys[cur];
+      // distance from the goal to the nearest point of this rectangle
+      const qx = Math.min(curPoly.x1, Math.max(curPoly.x0, ep[0]));
+      const qz = Math.min(curPoly.z1, Math.max(curPoly.z0, ep[2]));
+      const h = Math.hypot(ep[0] - qx, ep[2] - qz);
+      if (h < bestH) {
+        bestH = h;
+        bestId = cur;
       }
       for (const l of this.links[cur]) {
         const to = this.polys[l.to];
@@ -303,11 +319,22 @@ export class NavMesh {
         }
       }
     }
-    if (!found) return null;
+    let goal = e.poly.id;
+    let goalPt = ep;
+    if (!found) {
+      if (!opts.partial || bestId === s.poly.id) return null;
+      const b = this.polys[bestId];
+      goal = bestId;
+      // the point of that polygon nearest the goal, kept a little inside its edge
+      const m = 0.4;
+      const gx = Math.min(b.x1 - Math.min(m, (b.x1 - b.x0) / 2), Math.max(b.x0 + Math.min(m, (b.x1 - b.x0) / 2), ep[0]));
+      const gz = Math.min(b.z1 - Math.min(m, (b.z1 - b.z0) / 2), Math.max(b.z0 + Math.min(m, (b.z1 - b.z0) / 2), ep[2]));
+      goalPt = [gx, polyHeight(b, gx, gz), gz];
+    }
     // Collect the polygon corridor.
     const corridor: number[] = [];
-    for (let c = e.poly.id; c !== -1; c = parent[c]) corridor.unshift(c);
-    return this.funnel(sp, ep, corridor, parentLink);
+    for (let c = goal; c !== -1; c = parent[c]) corridor.unshift(c);
+    return this.funnel(sp, goalPt, corridor, parentLink);
   }
 
   private funnel(sp: V3, ep: V3, corridor: number[], parentLink: (NavLink | null)[]): V3[] {

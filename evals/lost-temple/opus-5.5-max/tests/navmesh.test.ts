@@ -75,6 +75,21 @@ describe('pathfinding', () => {
     m.setGate('door', true);
     expect(m.findPath([1, 0, 2], [21, 0, 2])).not.toBeNull();
   });
+  it('a partial path leads up to a shut gate instead of giving up', () => {
+    const walks = [
+      { x0: 0, z0: 0, x1: 10, z1: 4, y: 0, scene: 't' },
+      { x0: 10, z0: 0, x1: 12, z1: 4, y: 0, scene: 't', gate: 'door' },
+      { x0: 12, z0: 0, x1: 22, z1: 4, y: 0, scene: 't' },
+    ];
+    const m = new NavMesh(buildNavPolys(walks, [], []));
+    m.setGate('door', false);
+    const p = m.findPath([1, 0, 2], [21, 0, 2], { partial: true })!;
+    expect(p).not.toBeNull();
+    const end = p[p.length - 1];
+    // ends on the near side of the door, as far along as the floor goes
+    expect(end[0]).toBeGreaterThan(9);
+    expect(end[0]).toBeLessThanOrEqual(10);
+  });
   it('climbs ramps between levels and keeps stacked floors apart', () => {
     const walks = [
       { x0: 0, z0: 0, x1: 10, z1: 4, y: 0, scene: 't' },

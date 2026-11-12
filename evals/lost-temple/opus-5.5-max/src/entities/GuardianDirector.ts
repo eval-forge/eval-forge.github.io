@@ -85,6 +85,16 @@ export class GuardianDirector {
     return null;
   }
 
+  /** Where a spawn point is, without touching the random stream. */
+  private spawnPoint(id: string): THREE.Vector3 | null {
+    if (id === 'vaultStatue') return new THREE.Vector3(...vaultStatuePose(this.h.seed).pos);
+    for (const def of Object.values(SCENES)) {
+      const sp = def.spawns?.[id];
+      if (sp) return new THREE.Vector3(...sp);
+    }
+    return null;
+  }
+
   spawn(kind: GuardianKind, id: string): Guardian | null {
     if (this.spawned.has(id)) return null;
     const pose = this.spawnPose(id);
@@ -192,6 +202,11 @@ export class GuardianDirector {
       for (const e of SPAWN_SCHEDULE) {
         if (sinceDark < e.at) continue;
         if (!this.spawned.has(e.spawn)) {
+          // never pop out of the wall right next to the thief: hold the spawn while the player is
+          // close to it (up to 25 s late, after which the dead rise behind you anyway)
+          const sp = this.spawnPoint(e.spawn);
+          const pp = this.h.player().pos;
+          if (sp && sinceDark < e.at + 25 && Math.hypot(sp.x - pp.x, sp.z - pp.z) < 14 && Math.abs(sp.y - pp.y) < 6) continue;
           const g = this.spawn(e.kind, e.spawn);
           if (g) g.awake = true;
         } else {

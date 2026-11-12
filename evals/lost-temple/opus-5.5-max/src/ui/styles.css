@@ -80,6 +80,22 @@ select { font-family: var(--font); background: #24180c; color: var(--ink); borde
 #debug { position: fixed; left: 180px; top: 12px; z-index: 30; font: 12px/1.35 ui-monospace, Consolas, monospace; color: #b8ffb8; background: rgba(0, 0, 0, 0.6); padding: 6px 9px; white-space: pre; pointer-events: none; }
 #clickToPlay { position: fixed; left: 50%; bottom: 14%; transform: translateX(-50%); z-index: 25; font-size: 18px; color: var(--ink); background: var(--panel); border: 1px solid var(--panel-edge); padding: 8px 16px; border-radius: 4px; pointer-events: none; }
 
+/* small windows: shrink the HUD so it does not cover the view */
+@media (max-height: 640px), (max-width: 900px) {
+  #hud { font-size: 12px; }
+  #sundial { transform: scale(0.72); transform-origin: 0 0; left: 10px; top: 8px; }
+  .toast { font-size: 12px; padding: 4px 10px; max-width: 46vw; }
+  #toasts { top: 6%; gap: 4px; }
+  #prompt { font-size: 13px; }
+  #bars { width: 170px; left: 10px; bottom: 10px; gap: 4px; }
+  .bar { height: 10px; }
+  .bar label { font-size: 9px; line-height: 11px; }
+  #loot .carried { font-size: 19px; }
+  #loot .banked, #loot .items, #inventory { font-size: 11px; }
+  #zoneName { font-size: 20px; top: 20%; }
+  #debug { left: 120px; font-size: 10px; }
+}
+
 /* ---------- fatal error ---------- */
 .fatal { position: fixed; inset: 0; z-index: 100; background: #0c0906; color: var(--ink); padding: 48px; font-family: var(--font); }
 .fatal pre { white-space: pre-wrap; color: #ffb4a0; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 4px; }
