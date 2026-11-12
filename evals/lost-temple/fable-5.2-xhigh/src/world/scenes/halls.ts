@@ -87,7 +87,8 @@ export function* buildHalls(k: SceneKit): Generator<void> {
   // The nave has lost its vault: only the long beams are left, and they stripe the floor with shadow.
   for (const x of [-4.5, -1.5, 1.5, 4.5]) k.box(x - 0.6, top - 0.1, H.nave.z0, x + 0.6, top + 0.5, H.nave.z1, 'roofStone');
   for (const z of [-41, -48, -55]) k.box(H.nave.x0, top + 0.1, z - 0.22, H.nave.x1, top + 0.5, z + 0.22, 'roofStone');
-  for (const z of [-39, -45.5, -52]) k.box(8, top, z - 0.4, 25, top + 0.5, z + 0.4, 'roofStone');
+  // East gallery beams. None closer to the ramp head than z -49: the boulder needs the headroom up there.
+  for (const z of [-37.5, -43, -48.5]) k.box(8, top, z - 0.4, 25, top + 0.5, z + 0.4, 'roofStone');
   yield;
 
   // ------------------------------------------------------------------ seal

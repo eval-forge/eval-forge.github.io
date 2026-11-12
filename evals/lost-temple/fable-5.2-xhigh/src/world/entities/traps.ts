@@ -30,6 +30,16 @@ export interface BridgeOpts {
 }
 
 /**
+ * Take a collider out of the world for good. Disabling alone is not enough:
+ * the character controller's shape casts still land on a disabled collider,
+ * so it also loses every collision group.
+ */
+function knockOut(col: RAPIER.Collider): void {
+  col.setEnabled(false);
+  col.setCollisionGroups(0);
+}
+
+/**
  * A chain of dynamic segments joined edge to edge with revolute joints and
  * pinned to both banks. Each segment carries a plank; a plank that has been
  * stood on cracks, then drops out of the frame.
@@ -185,7 +195,7 @@ export class PlankBridge implements Entity {
     if (t.state !== 'broken') t.forceBroken();
     const col = this.colliders[i];
     if (!col.isEnabled()) return;
-    col.setEnabled(false);
+    knockOut(col);
     if (silent) return;
     const game = this.game;
     const body = this.bodies[i];
@@ -367,7 +377,7 @@ export class CrumbleFloor implements Entity {
         this.tiles.push(tile);
         if (saved.has(this.tiles.length - 1)) {
           timer.forceBroken();
-          col.setEnabled(false);
+          knockOut(col);
           tile.fallT = 99;
         }
       }
@@ -392,7 +402,7 @@ export class CrumbleFloor implements Entity {
           t.fallT += dt;
           if (t.fallT > 5) {
             t.fallT = 99;
-            t.col.setEnabled(false);
+            knockOut(t.col);
             t.body.setBodyType(RAPIER.RigidBodyType.Fixed, false);
           }
         }
@@ -624,10 +634,7 @@ export class SwingBlade implements Entity {
       this.body,
       true,
     );
-    if (startActive) {
-      const wNow = -this.wMax * Math.sin(phase) * 0.9;
-      this.body.setAngvel(axis === 'z' ? { x: 0, y: 0, z: wNow } : { x: -wNow, y: 0, z: 0 }, true);
-    }
+    if (startActive) this.setSwing(-this.wMax * Math.sin(phase) * 0.9);
 
     this.mesh = new THREE.Group();
     const arm = game.mats.mesh(new THREE.BoxGeometry(0.12, length * 0.8, 0.12), 'wood', dark);
@@ -654,7 +661,26 @@ export class SwingBlade implements Entity {
   start(): void {
     if (this.active) return;
     this.active = true;
-    this.body.setAngvel(this.axis === 'z' ? { x: 0, y: 0, z: this.wMax } : { x: this.wMax, y: 0, z: 0 }, true);
+    this.setSwing(this.wMax);
+  }
+
+  /**
+   * Give the blade a swing rate `w` (rad/s, positive = toward +x or +z) about its hinge.
+   * The mass sits far from the hinge, so the centre of mass must be given the matching
+   * linear velocity; an angular velocity alone is all but cancelled by the joint.
+   */
+  private setSwing(w: number): void {
+    const c = this.body.worldCom();
+    const rx = c.x - this.pivot.x;
+    const ry = c.y - this.pivot.y;
+    const rz = c.z - this.pivot.z;
+    if (this.axis === 'z') {
+      this.body.setAngvel({ x: 0, y: 0, z: w }, true);
+      this.body.setLinvel({ x: -w * ry, y: w * rx, z: 0 }, true);
+    } else {
+      this.body.setAngvel({ x: -w, y: 0, z: 0 }, true);
+      this.body.setLinvel({ x: 0, y: w * rz, z: -w * ry }, true);
+    }
   }
 
   /** Signed swing angle from vertical. */
@@ -673,7 +699,7 @@ export class SwingBlade implements Entity {
     if (sign !== 0 && sign !== this.lastSign) {
       // Through the bottom: restore full speed in the direction of travel.
       const dir = Math.sign(w) || 1;
-      this.body.setAngvel(this.axis === 'z' ? { x: 0, y: 0, z: dir * this.wMax } : { x: -dir * this.wMax, y: 0, z: 0 }, true);
+      this.setSwing(dir * this.wMax);
       this.lastSign = sign;
       this.whooshed = false;
     }

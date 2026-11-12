@@ -633,7 +633,10 @@ export class Player {
     }
 
     // Falling out of the world.
-    if (this.pos.y < game.killY()) game.die('died', 'You fell into the dark.');
+    if (this.pos.y < game.killY()) {
+      const scene = game.scenes.current;
+      game.die('died', scene === 'jungle' ? 'The gorge kept you.' : game.scenes.isDark(this.pos.y, scene) ? 'You fell into the dark.' : 'It was a long way down.');
+    }
   }
 
   grab(prop: Prop): void {

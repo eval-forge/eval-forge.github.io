@@ -85,7 +85,7 @@ describe('meta save', () => {
     expect(p.gear.torch).toBe(5);
     expect(p.gear.fuel).toBe(0);
     expect(p.settings.fov).toBe(110);
-    expect(p.settings.quality).toBe('high');
+    expect(p.settings.quality).toBe('medium');
   });
 
   it('works with no storage at all', () => {

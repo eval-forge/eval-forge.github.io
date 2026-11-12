@@ -264,7 +264,9 @@ export function installDebugApi(game: Game): void {
 
     /** Read back the frame as it is (torch and all). */
     measure() {
-      game.renderer.render(game.grade, game.time);
+      // Simulated time does not draw frames: let the torch light settle before measuring.
+      game.torchRig.frame(1);
+      game.tick(0);
       return game.renderer.measureFrame();
     },
 

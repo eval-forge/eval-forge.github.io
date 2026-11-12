@@ -57,7 +57,8 @@ export function hallsLayout(): SceneLayout {
   L.mass(-17, -62, -15, -61, Y, top);
 
   // Columns.
-  for (const x of [-19, -12.5, 12.5, 19]) L.pillar(x, -28, 0.75, Y, 6.5, x === 12.5 ? 0.5 : 1);
+  // The east pair stands clear of x 14.6..18.4: that lane belongs to the boulder.
+  for (const x of [-20, -12.5, 12.5, 20]) L.pillar(x, -28, 0.75, Y, 6.5, x === 12.5 ? 0.5 : 1);
   for (const x of [-18, -5, 5]) L.pillar(x, -67, 0.75, Y, 6.5, x === 5 ? 0.35 : 1);
   L.pillar(22, -67.5, 0.75, Y, 6.5, 1);
 
