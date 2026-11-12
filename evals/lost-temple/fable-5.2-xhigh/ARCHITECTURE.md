@@ -215,3 +215,32 @@ A small typed event bus (`game/events.ts`) carries cross-cutting events:
 Browser-level checks (traversal, darkness probe, frame timing) are scripted
 with Playwright through a `window.__lt` debug API and reported in
 `SELF_REVIEW.md`; they are not part of `npm test`.
+
+## As built
+
+This document was written before the code. Where the code ended up somewhere
+else:
+
+- **`game/interact.ts` and `game/events.ts` do not exist.** The camera ray,
+  prompts, toasts, damage and flag plumbing live in `game/game.ts`. There is a
+  `game/run.ts` (the per-run state bag) and a `game/debugApi.ts` (`window.__lt`)
+  that the plan did not list.
+- **Draw calls are well over the 250 budget.** Static geometry is batched per
+  material and per spatial cell as planned, but entities, the sun shadow pass
+  and the torch's six cube faces bring a typical frame to 200 to 700 calls and
+  the worst one (courtyard, night, torch lit) to about 1,200.
+- **Darts are swept ray-marched projectiles**, not pooled rigid bodies.
+- **The navmesh is static.** Gates open and close portals; pushed blocks, the
+  resting boulder and fallen debris are not carved.
+- **Rapier's character controller collides with disabled colliders**, so
+  anything that "breaks" (planks, crumbled tiles) also drops its collision
+  groups.
+- **Half-built scenes are disposed**, not kept: when the scene being built
+  falls out of the wanted set, or a run restarts, its partial meshes and bodies
+  are thrown away.
+- **Quality presets cap the device pixel ratio** (0.8 / 1 / 1.5) rather than
+  scale it, and the default preset is medium.
+- **Frame loop:** the simulation step is clamped to 0.1 s per frame, the FPS
+  counter is fed the real interval.
+
+`SELF_REVIEW.md` has the measured numbers and the list of known problems.
