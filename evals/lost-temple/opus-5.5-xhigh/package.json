@@ -1,0 +1,26 @@
+{
+  "name": "lost-temple-opus-5-5-xhigh",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The Lost Temple: a procedural first-person relic-heist game (Three.js + Rapier).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "playtest": "node scripts/playtest.mjs",
+    "mechanics": "node scripts/mechanics.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.21.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.187.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.8",
+    "vitest": "4.1.12"
+  }
+}
