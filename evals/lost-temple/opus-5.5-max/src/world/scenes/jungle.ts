@@ -141,7 +141,9 @@ export const jungle: SceneDef = {
     stream.position.set(0, -28.6, 71);
     rt.group.add(stream);
     // rope bridge
-    rt.addProp(new RopeBridge(ctx, rt, 'gorge', new THREE.Vector3(BRIDGE_X, -0.06, 78.9), new THREE.Vector3(BRIDGE_X, -0.06, 63.1), 1.8, 25));
+    // anchored at the lip of each rim (the walls are z 78..80 and 62..64), so the last plank meets
+    // the rim edge instead of hanging into the wall top
+    rt.addProp(new RopeBridge(ctx, rt, 'gorge', new THREE.Vector3(BRIDGE_X, -0.06, 78.0), new THREE.Vector3(BRIDGE_X, -0.06, 64.0), 1.8, 22));
     // relics
     ctx.relics.relicSpawn('j1', 'jungle', 'A', [-22, 1.8, 150]);
     ctx.relics.relicSpawn('j2', 'jungle', 'A', [19.5, jungleHeight(19.5, 133.5) + 0.05, 133.5]);

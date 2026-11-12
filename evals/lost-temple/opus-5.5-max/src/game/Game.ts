@@ -110,6 +110,11 @@ export class Game implements UIHost {
   private rndMs = 0;
   /** Debug only: game seconds per real second (headless tests run slow software rendering). */
   private timeScale = 1;
+  /** Adaptive quality: a sustained low frame rate early in a session steps the preset down once or twice. */
+  private perfT = 0;
+  private perfFrames = 0;
+  private perfDrops = 0;
+  private perfWatch = 0;
   private worstT = 0;
   private camDark = false;
   private camEnv: SceneEnv = 'outdoor';
@@ -1016,8 +1021,37 @@ export class Game implements UIHost {
     const tEnd = performance.now();
     this.updMs += (tRender - tStart - this.updMs) * 0.1;
     this.rndMs += (tEnd - tRender - this.rndMs) * 0.1;
+    this.watchPerformance(raw);
     this.debug.update(dt, () => this.debugInfo());
     this.input.endFrame();
+  }
+
+  /**
+   * If the first minutes of play run well under 60 FPS (a 5 second window averaging below 45),
+   * step the graphics preset down (high to medium to low), at most twice per session, and say so.
+   * Skipped in headless runs, where software rendering would always trip it.
+   */
+  private watchPerformance(raw: number) {
+    if (this.headless || this.state !== 'playing' || this.perfDrops >= 2 || document.hidden) {
+      this.perfT = 0;
+      this.perfFrames = 0;
+      return;
+    }
+    this.perfWatch += raw;
+    if (this.perfWatch > 240) return; // only judge the first four minutes
+    this.perfT += raw;
+    this.perfFrames++;
+    if (this.perfT < 5) return;
+    const fps = this.perfFrames / this.perfT;
+    this.perfT = 0;
+    this.perfFrames = 0;
+    if (fps >= 45) return;
+    const q = this.save.settings.quality;
+    const next = q === 'high' ? 'medium' : q === 'medium' ? 'low' : null;
+    if (!next) return;
+    this.perfDrops++;
+    this.applySettings({ ...this.save.settings, quality: next });
+    this.toast(`Running at ${fps.toFixed(0)} FPS: graphics lowered to ${next}. Change it in Settings.`, 'info', 6);
   }
 
   /** Pause, map, the click-to-play hint. */

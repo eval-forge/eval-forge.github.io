@@ -104,6 +104,7 @@ export class Sundial implements Prop {
         this.anim = 0;
         this.alignedFor = 0;
         ctx.run.set('sundial:step', this.step);
+        ctx.run.set('sundial:turned', true);
         ctx.sfx.play('stoneGrind', this.ring.position, 0.5);
         ctx.noise(this.ring.position.clone(), 0.5, 'machine', true);
       },
@@ -148,7 +149,10 @@ export class Sundial implements Prop {
     this.checkT = 0.2;
     const d = this.ctx.sunDir;
     const sun: [number, number, number] = [d.x, d.y, d.z];
-    if (this.ctx.sunUp() && sundialAligned(this.step, sun)) {
+    // only once a hand has turned the ring: the shadow drifting over the Eye on its own does
+    // not count (setting the Eye where the shadow is going to be, and waiting, does)
+    const turned = !!this.ctx.run.get('sundial:turned');
+    if (turned && this.ctx.sunUp() && sundialAligned(this.step, sun)) {
       this.alignedFor += 0.2;
       if (this.alignedFor >= 1.0) this.solve();
     } else this.alignedFor = 0;

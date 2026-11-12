@@ -419,9 +419,13 @@ export class Player {
       const t = b.translation();
       const r = new THREE.Vector3(hit.point.x - t.x, hit.point.y - t.y, hit.point.z - t.z);
       const wv = new THREE.Vector3(w.x, w.y, w.z).cross(r);
-      this.platformVel.set(v.x + wv.x, Math.min(0, v.y + wv.y), v.z + wv.z);
+      // rope-bridge planks swing under your own push: ride them down, but do not let their
+      // sway carry you backwards (that made the last steep planks a treadmill)
+      const swinging = owner?.kind === 'plank';
+      this.platformVel.set(swinging ? 0 : v.x + wv.x, Math.min(0, v.y + wv.y), swinging ? 0 : v.z + wv.z);
       if (b.isDynamic()) {
-        b.applyImpulseAtPoint({ x: 0, y: -totalMass * 12 * dt * 0.6, z: 0 }, { x: hit.point.x, y: hit.point.y, z: hit.point.z }, true);
+        const k = swinging ? 0.4 : 0.6;
+        b.applyImpulseAtPoint({ x: 0, y: -totalMass * 12 * dt * k, z: 0 }, { x: hit.point.x, y: hit.point.y, z: hit.point.z }, true);
       }
     }
   }

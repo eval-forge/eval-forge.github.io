@@ -29,7 +29,8 @@ export const DEFAULT_SETTINGS: Settings = {
   masterVolume: 0.8,
   musicVolume: 0.6,
   sfxVolume: 0.9,
-  quality: 'high',
+  // medium is the mid-range-laptop preset (native resolution, 2x MSAA, 2048 sun shadows)
+  quality: 'medium',
   showFps: false,
   showGhost: true,
 };
