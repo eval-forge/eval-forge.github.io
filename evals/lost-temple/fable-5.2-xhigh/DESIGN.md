@@ -127,7 +127,7 @@ At darkness every seal in the temple breaks open (catacomb seal, sanctum door,
 vault gate, lair gate) so the guardians can always reach the door. Kick wall,
 escape stair and drawbridge only help them if the player opened them.
 
-### Scene notes
+### Scene by scene
 
 **1 Jungle Approach.** Heightfield terrain, dense instanced vegetation. A river
 with a current (stepping stones, or wade and get pushed downstream). A gorge
@@ -206,7 +206,7 @@ South: the lever-operated escape stair up into the sanctum.
 - Underground there is no sky: the HUD dial and the sounds are the only clock.
 
 ### Torch
-| Property        | Base  | Notes                                                    |
+| Property        | Base  | Details                                                  |
 |-----------------|-------|----------------------------------------------------------|
 | Fuel            | 210 s | burns only while lit; upgrades 300 / 420 s               |
 | Full radius     | 13 m  | upgrades 16 / 19 m                                       |

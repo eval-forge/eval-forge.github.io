@@ -380,6 +380,18 @@ export class Drawbridge implements Entity {
     }
     parent.add(this.mesh);
     this.apply(true);
+    if (this.t === 1) this.settle();
+  }
+
+  /**
+   * Once the deck is down it stops being a moving platform and becomes plain static
+   * ground. Rapier's character controller runs a separate "riding a kinematic body" path
+   * on a kinematic floor, and on this deck that path would now and then swallow a whole
+   * step of movement, leaving the player rooted mid-bridge until they jumped.
+   */
+  private settle(): void {
+    this.apply(true);
+    this.body.setBodyType(RAPIER.RigidBodyType.Fixed, true);
   }
 
   private apply(hard: boolean): void {
@@ -411,6 +423,8 @@ export class Drawbridge implements Entity {
       this.game.sfx('doorSlam', this.mesh.position, 0.8);
       this.game.noise('door', this.mesh.position);
       this.game.shake(0.4);
+      this.settle();
+      return;
     }
     this.apply(false);
   }

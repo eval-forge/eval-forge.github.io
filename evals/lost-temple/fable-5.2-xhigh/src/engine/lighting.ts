@@ -30,6 +30,7 @@ export class Lighting {
   private readonly up = new THREE.Vector3();
   private readonly tmp = new THREE.Vector3();
   private torchShadowWanted = true;
+  private torchShadowOn = false;
 
   constructor(private readonly scene: THREE.Scene) {
     this.sun.castShadow = true;
@@ -105,20 +106,24 @@ export class Lighting {
     this.sun.target.position.copy(f);
     this.sun.position.copy(f).addScaledVector(d, SUN_DIST);
     this.sun.target.updateMatrixWorld();
-    const active = outdoor > 0.001 && this.sun.intensity > 0.001;
+    // One shadow-casting light at a time after dark: where the torch is throwing shadows, the
+    // faint moon does not also get a shadow pass.
+    const active = outdoor > 0.001 && this.sun.intensity > 0.001 && !(cel.isMoon && this.torchShadowOn);
+    this.sun.shadow.intensity = active ? 1 : 0;
     this.sun.shadow.autoUpdate = active;
     if (active) this.sun.shadow.needsUpdate = true;
   }
 
   /**
    * The hand torch.
-   * @param shadows false in open daylight, where the flame's shadows are invisible anyway
+   * @param shadows false under open sky, where the sun or moon casts the shadows instead
    */
   setTorch(pos: Vec3Like, radius: number, intensity: number, shadows: boolean): void {
     this.torch.position.set(pos.x, pos.y, pos.z);
     this.torch.distance = Math.max(0.5, radius);
     this.torch.intensity = radius > 0 ? intensity : 0;
     const on = this.torch.intensity > 0 && shadows && this.torchShadowWanted;
+    this.torchShadowOn = on;
     this.torch.shadow.intensity = on ? 1 : 0;
     this.torch.shadow.autoUpdate = on;
     if (on) this.torch.shadow.needsUpdate = true;

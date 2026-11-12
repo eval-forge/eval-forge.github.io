@@ -29,6 +29,15 @@ Other scripts:
 
 Needs Node 20 or newer and a browser with WebGL2.
 
+`play/` holds a prebuilt copy of the game (the output of
+`npx vite build --outDir play`). It uses relative paths, so any static file
+server can host it from any sub-folder, GitHub Pages included: serve this
+directory and open `play/`. It has to come from a server; browsers will not
+load it from a `file://` path.
+
+Graphics quality starts at **medium**. Settings has low and high, and F3 shows
+the live frame rate, draw calls and physics body count.
+
 ## Controls
 
 | Action                           | Keyboard and mouse             | Gamepad                  |
@@ -107,11 +116,13 @@ node playtest/smoke.cjs              # boots, starts a run, walks, checks for er
 node playtest/playthrough.cjs        # a bot plays a whole heist with ordinary inputs
 node playtest/scenarios.cjs [name]   # single-system checks: darkness probe, nightfall, traps, torch, menus...
 node playtest/tour.cjs [filter]      # screenshots of every scene into playtest/shots/
+node playtest/perf.cjs               # draw calls, triangles and step cost per zone (LT_GPU=1 to use a real GPU)
 ```
 
 `LT_URL` points them at another server (for example a `vite preview` of a
 production build). They run Chromium on its software renderer, so they check
-behaviour, not frame rate.
+behaviour, not frame rate, unless you run `perf.cjs` with `LT_GPU=1` on a
+machine that has one.
 
 The same API is handy in the browser console: `__lt.state()`,
 `__lt.teleport(x, y, z)`, `__lt.setTime(seconds)`, `__lt.give('jade_mask')`,

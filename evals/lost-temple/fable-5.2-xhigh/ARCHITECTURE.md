@@ -228,13 +228,18 @@ else:
 - **Draw calls are well over the 250 budget.** Static geometry is batched per
   material and per spatial cell as planned, but entities, the sun shadow pass
   and the torch's six cube faces bring a typical frame to 200 to 700 calls and
-  the worst one (courtyard, night, torch lit) to about 1,200.
+  the worst one (courtyard at night, all guardians out) to about 1,000. The
+  torch therefore casts shadows only where the sky does not: underground, on
+  the stairs down, and in the roofless halls after dark.
 - **Darts are swept ray-marched projectiles**, not pooled rigid bodies.
 - **The navmesh is static.** Gates open and close portals; pushed blocks, the
   resting boulder and fallen debris are not carved.
 - **Rapier's character controller collides with disabled colliders**, so
   anything that "breaks" (planks, crumbled tiles) also drops its collision
   groups.
+- **The same controller stalls on kinematic floors** (it runs a separate
+  moving-platform path there), so the drawbridge deck switches from kinematic
+  to fixed the moment it is down.
 - **Half-built scenes are disposed**, not kept: when the scene being built
   falls out of the wanted set, or a run restarts, its partial meshes and bodies
   are thrown away.

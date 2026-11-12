@@ -168,8 +168,11 @@ export class TorchRig {
     this.lightPos.x += Math.sin(this.t * 17.3) * 0.012;
     this.lightPos.y += Math.sin(this.t * 21.1) * 0.012;
     const on = this.level > 0.004;
-    // In open daylight the flame's shadows are invisible; skip the cube map pass.
-    const shadows = game.outdoor < 0.999 || SCENES[game.scenes.current].zone !== 'A' || game.run.clock.dayFraction > 0.86;
+    // The flame casts shadows only where it is the light that matters: underground, on the
+    // stairs down, and in the roofless halls after dark. Under open sky the sun or the moon
+    // does that job, and six more shadow passes would buy nothing you could see.
+    const zone = SCENES[game.scenes.current].zone;
+    const shadows = zone === 'C' || game.outdoor < 0.999 || (zone === 'B' && game.run.clock.isDark);
     game.lighting.setTorch(this.lightPos, on ? this.radius * (0.97 + 0.03 * flick) : 0, TORCH_INTENSITY * this.level * flick, shadows);
   }
 }
