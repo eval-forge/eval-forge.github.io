@@ -146,9 +146,9 @@ const KEYS: Key[] = [
   },
   {
     f: 0.1, // morning
-    sunColor: hex(0xffd49a), sunIntensity: 2.3,
+    sunColor: hex(0xffd49a), sunIntensity: 2.8,
     skyTop: hex(0x4675c6), skyHorizon: hex(0xd3e2ee),
-    hemiSky: hex(0xa6c2ee), hemiGround: hex(0x6a6046), hemiIntensity: 1.52,
+    hemiSky: hex(0xa6c2ee), hemiGround: hex(0x6a6046), hemiIntensity: 1.3,
     fog: hex(0xc6d6dc), fogDensity: 0.007,
     tint: { r: 1.04, g: 1.0, b: 0.96 }, saturation: 1.08, contrast: 1.0, exposure: 1.0, lift: 0.01,
     stars: 0,

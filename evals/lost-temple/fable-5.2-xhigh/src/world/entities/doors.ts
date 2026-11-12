@@ -462,6 +462,11 @@ export class Sundial implements Entity, Interactable {
     ringMesh.receiveShadow = true;
     ringMesh.castShadow = true;
     this.ring.add(ringMesh);
+    // A pale, seamless face, so the gnomon's shadow is the only dark line on the dial.
+    const face = mats.mesh(new THREE.CylinderGeometry(2.42, 2.42, 0.03, 40), 'bone', false);
+    face.position.y = 0.235;
+    face.receiveShadow = true;
+    this.ring.add(face);
     // Twelve glyph stones; the serpent stone (local +Z) is bronze and taller.
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2;
@@ -496,10 +501,11 @@ export class Sundial implements Entity, Interactable {
     plinth.position.set(cx, y + 0.22 + 0.5, cz);
     const niche = mats.mesh(new THREE.BoxGeometry(0.62, 0.62, 0.04), 'char', false);
     niche.position.set(cx, y + 0.22 + 0.42, cz + 0.56);
-    const gnomon = mats.mesh(new THREE.CylinderGeometry(0.05, 0.2, 4.8, 8), 'bronze', false);
+    // A four-sided obelisk, thick enough that its shadow is several shadow-map texels wide at any quality.
+    const gnomon = mats.mesh(new THREE.CylinderGeometry(0.16, 0.3, 4.8, 4), 'bronze', false);
     gnomon.position.set(cx, y + 1.22 + 2.4, cz);
-    const finial = mats.mesh(new THREE.SphereGeometry(0.16, 10, 8), 'gold', false);
-    finial.position.set(cx, y + 1.22 + 4.85, cz);
+    const finial = mats.mesh(new THREE.SphereGeometry(0.3, 12, 8), 'gold', false);
+    finial.position.set(cx, y + 1.22 + 4.95, cz);
     for (const m of [plinth, niche, gnomon, finial]) {
       m.castShadow = m !== niche;
       m.receiveShadow = true;
@@ -511,7 +517,7 @@ export class Sundial implements Entity, Interactable {
     };
     solid(RAPIER.ColliderDesc.cylinder(0.11, 3.4).setTranslation(cx, y + 0.11, cz));
     solid(RAPIER.ColliderDesc.cuboid(0.55, 0.5, 0.55).setTranslation(cx, y + 0.72, cz));
-    solid(RAPIER.ColliderDesc.cylinder(2.4, 0.16).setTranslation(cx, y + 3.6, cz));
+    solid(RAPIER.ColliderDesc.cylinder(2.4, 0.26).setTranslation(cx, y + 3.6, cz));
 
     // The niche cover: slides down into the dial when the ring is set right.
     this.cap = mats.mesh(new THREE.BoxGeometry(0.7, 0.7, 0.09), 'bronze', false);
