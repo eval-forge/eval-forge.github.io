@@ -155,7 +155,7 @@ export class LevelBuilder {
    * Ramp or staircase from (x0,z0)-(x1,z1); the height goes from yStart at the low end of
    * `axis` to yEnd at the high end. Collider is a smooth slab; visuals are steps if asked.
    */
-  ramp(x0: number, z0: number, x1: number, z1: number, yStart: number, yEnd: number, axis: 'x' | 'z', mat: MatKey, o: BoxOpts & { steps?: boolean; gate?: string } = {}) {
+  ramp(x0: number, z0: number, x1: number, z1: number, yStart: number, yEnd: number, axis: 'x' | 'z', mat: MatKey, o: BoxOpts & { steps?: boolean; gate?: string; stepDepth?: number } = {}) {
     this.navRamps.push({ x0, z0, x1, z1, yStart, yEnd, axis, scene: this.scene, gate: o.gate ?? null });
     if (this.navOnly) return;
     const len = axis === 'x' ? x1 - x0 : z1 - z0;
@@ -188,7 +188,8 @@ export class LevelBuilder {
         const a0 = (axis === 'x' ? x0 : z0) + i * stepLen;
         // step tops sit half a step around the smooth collider so feet neither float nor sink much
         const top = yStart + stepH * (i + 0.5);
-        const bottom = Math.min(yStart, yEnd) - 0.3;
+        // solid down to the low end, unless the stair runs above another room (stepDepth)
+        const bottom = Math.max(Math.min(yStart, yEnd) - 0.3, o.stepDepth !== undefined ? top - o.stepDepth : -Infinity);
         const h = top - bottom;
         if (h <= 0.01) continue;
         const ca = a0 + stepLen / 2;

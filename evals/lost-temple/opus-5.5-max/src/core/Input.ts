@@ -156,8 +156,8 @@ export class Input {
   }
   private forcedMove: [number, number] | null = null;
 
-  /** Call once per frame before the game reads input. */
-  poll() {
+  /** Call once per frame before the game reads input; `frameDt` is the real frame time in seconds. */
+  poll(frameDt = 1 / 60) {
     // Keyboard movement
     let mx = 0;
     let my = 0;
@@ -187,8 +187,11 @@ export class Input {
       if (ax || ay || rx || ry) this.usingGamepad = true;
       mx += ax;
       my -= ay;
-      lx += rx * Math.abs(rx) * 0.05 * this.sensitivity;
-      ly += ry * Math.abs(ry) * 0.04 * this.sensitivity * (this.invertY ? -1 : 1);
+      // the right stick is a turn rate (up to 3 rad/s across, 2.4 rad/s up and down), so it turns
+      // at the same speed at any frame rate
+      const turn = Math.min(0.1, Math.max(0, frameDt));
+      lx += rx * Math.abs(rx) * 3.0 * turn * this.sensitivity;
+      ly += ry * Math.abs(ry) * 2.4 * turn * this.sensitivity * (this.invertY ? -1 : 1);
       const b = (i: number) => !!gp.buttons[i]?.pressed;
       const map: [number, Action][] = [
         [0, 'jump'],

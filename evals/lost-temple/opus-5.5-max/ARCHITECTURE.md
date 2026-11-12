@@ -136,7 +136,9 @@ At `finish()` all static boxes are merged into one mesh per (16 m chunk, materia
 
 - One Rapier world, gravity -12 m/s^2 (the player uses its own -20 m/s^2 for snappier jumps).
 - Collision groups: `STATIC`, `PLAYER`, `PROP`, `DEBRIS`, `GUARDIAN`, `SENSOR`, `HAZARD`, `DART`. Hazards (boulder, blades, falling debris, darts) do not physically collide with the player capsule; their damage is applied by distance and speed checks, so a kinematic player never stops a 3 tonne boulder.
-- The player is a kinematic capsule driven by Rapier's `KinematicCharacterController` (autostep, snap to ground, slope limit). When standing on a dynamic body the player adds that body's velocity (platform carry) and pushes down with its weight.
+- The player is a kinematic capsule driven by Rapier's `KinematicCharacterController` (autostep, snap to ground, slope limit). When standing on a dynamic body the player adds that body's velocity (platform carry) and pushes down with its weight. Rope-bridge planks are the exception: the player rides them down but does not inherit their horizontal sway, and pushes with 40% of its weight, otherwise the steep last planks behave like a treadmill.
+- Anything the player walks on is a fixed or dynamic body, never a kinematic one: the character controller stalls on kinematic floors (found by the route playtest on the lowered drawbridge and the closed seal). Doors, slabs and the drawbridge are therefore fixed bodies that are teleported (`setTranslation` / `setRotation`) while they move. Only blades and guardians are kinematic, and the player never stands on those.
+- A held object follows a velocity-limited spring to a point in front of the camera. It is dropped only when it stays more than 2.6 m behind that point for 0.35 s (snagged behind a wall), so a fast 180 degree turn does not drop it.
 - Sensors (plates, pedestals) are queried with `intersectionsWithShape` and sum `mass()` of resting dynamic bodies.
 
 ## Lighting and the zero-ambient rule
@@ -159,6 +161,10 @@ update(brain, perception, dt) -> { state, moveTarget, speed, catch }
 
 One `AudioContext`, master compressor, three buses (music, sfx, ambience). Positional sounds use `PannerNode` (HRTF) with the listener on the camera. Every sound is synthesized (oscillators, noise buffers, filters, envelopes); nothing is loaded.
 
+## Graphics quality
+
+Three presets (`config.ts`): low (0.75 pixel ratio, 1024 sun shadows, 256 torch cube shadows, no MSAA, sparser vegetation), medium (native resolution capped at 1x, 2048/512 shadows, 2x MSAA) and high (up to 1.5x pixel ratio, 4x MSAA, full vegetation). Medium is the default. If the first four minutes of play average under 45 FPS over a 5 second window, the preset steps down (at most twice per session) and a toast says so.
+
 ## Persistence
 
 `localStorage` key `lostTemple.save.v1`: settings, money, purchased upgrades, high-score table (top 10), best-run ghost track (quantized). `logic/save.ts` validates and migrates the blob, so a corrupt save falls back to defaults.
@@ -166,7 +172,10 @@ One `AudioContext`, master compressor, three buses (music, sfx, ambience). Posit
 ## Debugging and test hooks
 
 - `F3` overlay: FPS, frame ms, physics bodies and colliders, current and loaded scenes, draw calls, triangles, guardian states.
-- `?debug` in the URL exposes `window.lostTemple` with `teleport(scene)`, `setTime(secondsLeft)`, `give(item)`, `fps()` and similar, used by the Playwright scripts in `scripts/`.
+- `F3` also shows the CPU cost of the update half of the frame and of the render call, measured separately.
+- `?debug` in the URL exposes `window.lostTemple`: `start(seed)`, `state()`, `teleport(scene | [x,y,z], yaw)`, `setTime(secondsLeft)`, `advance(s)`, `speed(k)` (game seconds per real second, for slow software-rendered test browsers), `look`, `move`, `press`/`release` (inject input actions), `give(item)`, `flag(f)`, `light()`, `snuff()`, `god()`, `noGuardians()`, `quality(q)`, `cpu()` and `litPixels()` (reads the WebGL canvas back and counts non-black pixels).
+- `?headless` (or a HeadlessChrome user agent) skips pointer-lock pauses and the adaptive quality drop.
+- Playwright scripts in `scripts/` (run against `npm run dev`): `smoke`, `tour` (every scene: frame cost, draw calls, triangles, bodies), `heist` (stash, bank, leave, results, save), `progression` (sundial to Sun-Disc to seal), `door` (push block plus plate), `bridge` (rope bridge crossing), `darkness inside|outside|hall` (guardian wake, sweep, catch, door shut), `menus` (click-through of every screen), `check-dark` (Zone C zero-light assertion), `traps` (pedestal swap and darts, crumbling pit, dart plates, blades standing and crouched, idol collapse, boulder; damage is recorded instead of applied), `route` (walks the way in and the whole escape route on foot along navmesh paths and reports every spot the thief gets stuck), `climb` (three mantles and two vine climbs up the cliffs, then a throw) and `supplies` (takes every oil flask and spare torch cache).
 
 ## Tests
 

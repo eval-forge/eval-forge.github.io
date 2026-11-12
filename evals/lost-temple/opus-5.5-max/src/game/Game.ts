@@ -992,7 +992,7 @@ export class Game implements UIHost {
       this.worstMs = raw * 1000;
       this.worstT = 2;
     }
-    this.input.poll();
+    this.input.poll(raw);
     const run = this.run;
     if (this.input.pressed('debug')) this.debug.toggle();
     if (run && (this.state === 'playing' || this.state === 'ending')) {
