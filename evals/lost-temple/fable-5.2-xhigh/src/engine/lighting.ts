@@ -21,7 +21,7 @@ export interface SconceLight {
 export class Lighting {
   readonly sun = new THREE.DirectionalLight(0xffffff, 1);
   readonly hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-  readonly torch = new THREE.PointLight(0xffa257, 0, 13, 2);
+  readonly torch = new THREE.PointLight(0xffd2a0, 0, 13, 1.2);
   readonly sconces: THREE.PointLight[] = [];
   readonly fog = new THREE.FogExp2(0xffffff, 0.006);
   /** Unit vector toward the sun or moon. */
@@ -55,7 +55,7 @@ export class Lighting {
     scene.add(this.torch);
 
     for (let i = 0; i < SCONCE_LIGHTS; i++) {
-      const l = new THREE.PointLight(0xff9a4a, 0, 9, 2);
+      const l = new THREE.PointLight(0xffbc80, 0, 9, 1.5);
       l.castShadow = false;
       scene.add(l);
       this.sconces.push(l);
@@ -136,7 +136,7 @@ export class Lighting {
       if (s) {
         l.position.set(s.pos.x, s.pos.y, s.pos.z);
         l.distance = s.radius;
-        l.intensity = 26 * s.level;
+        l.intensity = 9 * s.level;
       } else {
         l.intensity = 0;
       }

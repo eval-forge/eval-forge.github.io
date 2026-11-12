@@ -123,6 +123,7 @@ export class Player {
     this.pos.set(x, y, z);
     this.prevPos.copy(this.pos);
     this.vel.set(0, 0, 0);
+    this.airSpeed = 0;
     this.yaw = yaw;
     this.mode = this.mode === 'dead' ? 'dead' : 'walk';
     this.climb = null;
@@ -444,9 +445,12 @@ export class Player {
     this.pos.y += res.y;
     this.pos.z += res.z;
     this.grounded = this.kcc.computedGrounded();
-    // Lose the speed the world took away (walls, ceilings).
-    if (Math.abs(res.x - dx) > 1e-4 && Math.abs(dx) > 1e-5) this.vel.x *= clamp01(Math.abs(res.x / dx));
-    if (Math.abs(res.z - dz) > 1e-4 && Math.abs(dz) > 1e-5) this.vel.z *= clamp01(Math.abs(res.z / dz));
+    // Lose the speed a wall took away. Climbing a slope also shortens the horizontal
+    // step (to about cos^2 of the slope), and that must NOT bleed speed or stairs stall.
+    const kx = Math.abs(dx) > 1e-5 ? Math.abs(res.x / dx) : 1;
+    const kz = Math.abs(dz) > 1e-5 ? Math.abs(res.z / dz) : 1;
+    if (kx < 0.3) this.vel.x *= clamp01(kx);
+    if (kz < 0.3) this.vel.z *= clamp01(kz);
     if (this.vel.y > 0 && res.y < dy * 0.5) this.vel.y = 0;
     this.pushBlocks(wx, wz, wl);
 
@@ -455,7 +459,9 @@ export class Player {
     } else {
       if (!wasGrounded && this.airSpeed > 3.5) this.land(this.airSpeed, depth);
       this.airSpeed = 0;
-      this.vel.y = -2;
+      // No standing downward speed: snap-to-ground keeps the feet down on descents, and a
+      // constant push into the floor turns into a push back down every slope.
+      this.vel.y = 0;
     }
     this.syncBody(false);
     this.afterMove(dt, Math.hypot(res.x, res.z) / dt, drainMult);

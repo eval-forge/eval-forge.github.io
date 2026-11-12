@@ -150,9 +150,10 @@ export function canopyGeometry(): THREE.BufferGeometry {
     const kk = 0.82 + 0.3 * Math.abs(Math.sin(p.getX(i) * 7.3 + p.getY(i) * 3.1 + p.getZ(i) * 5.7));
     p.setXYZ(i, p.getX(i) * kk, p.getY(i) * kk * 0.72, p.getZ(i) * kk);
     const shade = 0.45 + 0.55 * Math.max(0, p.getY(i) * 0.9 + 0.35);
-    col[i * 3] = 0.3 * shade;
-    col[i * 3 + 1] = 0.62 * shade;
-    col[i * 3 + 2] = 0.22 * shade;
+    // Linear values (vertex colours are not sRGB-decoded).
+    col[i * 3] = 0.11 * shade;
+    col[i * 3 + 1] = 0.21 * shade;
+    col[i * 3 + 2] = 0.065 * shade;
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.computeVertexNormals();
@@ -160,7 +161,7 @@ export function canopyGeometry(): THREE.BufferGeometry {
 }
 
 export const leafTint = (hue: number, c: THREE.Color): void => {
-  c.setRGB(0.75 + hue * 0.5, 0.85 + hue * 0.3, 0.7 + hue * 0.35);
+  c.setRGB(0.8 + hue * 0.45, 0.84 + hue * 0.26, 0.74 + hue * 0.3);
 };
 
 export interface Rect {

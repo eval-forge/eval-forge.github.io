@@ -12,7 +12,9 @@ import { flameSprite } from '../world/entities/env';
 import type { Game } from './game';
 
 /** Candela at full fuel. */
-const TORCH_INTENSITY = 34;
+const TORCH_INTENSITY = 13;
+/** Firelight on the hand and the torch itself (linear), scaled by how close each part is to the flame. */
+const GLOW = new THREE.Color(1.0, 0.62, 0.3);
 
 const _p = new THREE.Vector3();
 const _r = new THREE.Vector3();
@@ -23,6 +25,7 @@ export class TorchRig {
   private readonly group = new THREE.Group();
   private readonly flame: THREE.Sprite;
   private readonly flint = new THREE.Group();
+  private readonly parts: { mesh: THREE.Mesh; key: string; glow: number }[] = [];
   private dark = false;
   private t = Math.random() * 10;
   private raise = 0.35;
@@ -36,29 +39,39 @@ export class TorchRig {
 
   constructor(private readonly game: Game) {
     const g = this.group;
-    const mk = (geo: THREE.BufferGeometry, mat: string, x: number, y: number, z: number): THREE.Mesh => {
-      const m = game.mats.mesh(geo, mat);
+    let order = 9000;
+    const mk = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: string, x: number, y: number, z: number, glow: number): THREE.Mesh => {
+      const m = new THREE.Mesh(game.mats.prep(geo, mat), game.mats.viewModel(mat, false, `${this.parts.length}`));
       m.position.set(x, y, z);
       m.castShadow = false;
-      m.receiveShadow = false;
+      m.receiveShadow = true;
       m.frustumCulled = false;
+      m.renderOrder = order++;
+      this.parts.push({ mesh: m, key: mat, glow });
+      parent.add(m);
       return m;
     };
-    g.add(mk(new THREE.CylinderGeometry(0.022, 0.018, 0.5, 8), 'wood', 0, 0, 0));
-    g.add(mk(new THREE.CylinderGeometry(0.045, 0.035, 0.13, 8), 'cloth', 0, 0.27, 0));
-    g.add(mk(new THREE.CylinderGeometry(0.03, 0.042, 0.04, 8), 'char', 0, 0.35, 0));
-    g.add(mk(new THREE.BoxGeometry(0.075, 0.1, 0.085), 'hand', 0.005, -0.14, 0.005));
-    g.add(mk(new THREE.BoxGeometry(0.07, 0.3, 0.075), 'cloth', 0.01, -0.34, 0.03)); // sleeve
+    // Back to front as seen from the eye: sleeve, hand, shaft, wrapped head, charred tip.
+    mk(g, new THREE.BoxGeometry(0.075, 0.3, 0.08), 'cloth', 0.01, -0.36, 0.035, 0.22);
+    mk(g, new THREE.CylinderGeometry(0.02, 0.017, 0.52, 8), 'wood', 0, 0, 0, 0.5);
+    mk(g, new THREE.BoxGeometry(0.07, 0.1, 0.08), 'hand', 0.004, -0.15, 0.004, 0.4);
+    mk(g, new THREE.CylinderGeometry(0.043, 0.032, 0.13, 8), 'cloth', 0, 0.28, 0, 1.1);
+    mk(g, new THREE.CylinderGeometry(0.028, 0.04, 0.04, 8), 'char', 0, 0.36, 0, 2.5);
+    // The flame gets its own material: it must draw over the world like the rest of the rig.
     this.flame = flameSprite(game, 0.2);
+    const fm = (this.flame.material as THREE.SpriteMaterial).clone();
+    fm.depthTest = false;
+    this.flame.material = fm;
+    this.flame.renderOrder = 9100;
     this.flame.position.set(0, 0.44, 0);
     this.flame.visible = false;
     g.add(this.flame);
     // The other hand, with the flint, only shows while striking.
-    this.flint.add(mk(new THREE.BoxGeometry(0.07, 0.08, 0.09), 'hand', 0, 0, 0));
-    this.flint.add(mk(new THREE.BoxGeometry(0.05, 0.035, 0.07), 'rock', 0, 0.05, 0));
+    mk(this.flint, new THREE.BoxGeometry(0.07, 0.08, 0.09), 'hand', 0, 0, 0, 0.45);
+    mk(this.flint, new THREE.BoxGeometry(0.05, 0.035, 0.07), 'rock', 0, 0.05, 0, 0.45);
     this.flint.visible = false;
     g.add(this.flint);
-    g.scale.setScalar(0.55);
+    g.scale.setScalar(0.8);
     g.visible = false;
     game.renderer.camera.add(g);
   }
@@ -97,19 +110,19 @@ export class TorchRig {
     const dark = SCENES[game.scenes.current].zone === 'C';
     if (dark !== this.dark) {
       this.dark = dark;
-      game.mats.applyZone(g, dark);
+      this.parts.forEach((p, i) => (p.mesh.material = game.mats.viewModel(p.key, dark, `${i}`)));
     }
 
     // Pose: held up when lit, lowered when out, brought across the body to strike.
     this.raise = damp(this.raise, lit ? 1 : striking ? 0.8 : 0.3, 8, dt);
     const k = striking ? torch.relightProgress : 0;
     const bob = Math.sin(this.t * 1.7) * 0.004 + Math.min(1, player.speed / 6) * Math.sin(this.t * 9) * 0.006;
-    g.position.set(0.2 - (striking ? 0.07 : 0), -0.27 + this.raise * 0.09 + bob, -0.33);
-    g.rotation.set(0.2 + (1 - this.raise) * 0.5, 0, -0.16 - (striking ? 0.25 : 0));
+    g.position.set(0.27 - (striking ? 0.09 : 0), -0.44 + this.raise * 0.16 + bob, -0.52);
+    g.rotation.set(-0.3 - (1 - this.raise) * 0.75, 0, 0.14 + (striking ? 0.3 : 0));
     this.flint.visible = striking;
     if (striking) {
       const strike = Math.abs(Math.sin(k * Math.PI * 4.5));
-      this.flint.position.set(-0.16 + strike * 0.1, 0.3 - strike * 0.06, 0.04);
+      this.flint.position.set(-0.17 + strike * 0.11, 0.3 - strike * 0.06, 0.03);
       this.flintT -= dt;
       if (this.flintT <= 0) {
         this.flintT = 0.34;
@@ -138,6 +151,11 @@ export class TorchRig {
 
     // The light sits beside and ahead of the eye, pulled back if a wall is in the way.
     this.level = damp(this.level, lit ? torch.brightness : 0, lit ? 7 : 16, dt);
+    const glow = this.level < 0.004 ? 0 : this.level * flick;
+    for (const p of this.parts) {
+      const m = p.mesh.material as THREE.MeshLambertMaterial;
+      m.emissive.copy(m.color).multiply(GLOW).multiplyScalar(glow * p.glow);
+    }
     if (lit) this.radius = torch.radius;
     const cam = game.renderer.camera;
     cam.matrixWorld.extractBasis(_r, _u, _f);
