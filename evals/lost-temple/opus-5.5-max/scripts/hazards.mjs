@@ -200,8 +200,16 @@ check('no striking a light while you swim', ev3.includes('relightFail:water'), e
 check('swim the channel and climb out onto the island', swamOut, `feet y ${s3.feet[1].toFixed(2)}, mode ${s3.mode}, swam ${sawSwim}`);
 if (!swamOut) await page.evaluate((F) => window.lostTemple.teleport([9, F + 0.9, -109.8], 0), F);
 await wait(page, 1500);
+// the mantle leaves you at the island's edge, up to 3 m short of the key: step up to it
 await lookAt([9, F + 1.8, -112]);
 await wait(page, 800);
+for (let k = 0; k < 16 && !/Serpent Key/.test(await promptText()); k++) {
+  await page.evaluate(() => window.lostTemple.move(0, 1));
+  await wait(page, 250);
+  await page.evaluate(() => window.lostTemple.stop());
+  await lookAt([9, F + 1.8, -112]);
+  await wait(page, 400);
+}
 const keyPrompt = await promptText();
 await page.evaluate(() => window.lostTemple.press('interact'));
 await wait(page, 1200);

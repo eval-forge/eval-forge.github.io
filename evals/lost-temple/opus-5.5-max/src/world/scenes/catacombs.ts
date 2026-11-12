@@ -109,13 +109,13 @@ export const catacombs: SceneDef = {
     b.floor(-6, -116, 22, -108.5, F, 'dungeonFloor', { thick: 2.4 });
     b.floor(-6, -108.5, 22, -104.5, F - 1.8, 'dungeonFloor', { nav: 'none', thick: 0.6 });
     b.water(-6, -116, 22, -96, F - 2, F + 0.6);
-    // stone piers either side of the channel at the west end, carrying the plank bridge
-    for (const sz of [1, -1]) {
-      const zc = sz > 0 ? -103.5 : -109.5;
-      b.box(-4, F + 0.45, zc, 2.4, 0.9, 2, 'dungeon');
-      b.box(-4, F + 0.3, zc + sz * 1.4, 2.4, 0.6, 0.8, 'dungeon');
-      b.box(-4, F + 0.15, zc + sz * 2.2, 2.4, 0.3, 0.8, 'dungeon');
-    }
+    // stone piers either side of the channel at the west end, carrying the plank bridge, each
+    // reached by a short stair out of the shallows (a sloped collider: the character controller
+    // does not reliably step up separate blocks while wading)
+    b.box(-4, F + 0.45, -103.5, 2.4, 0.9, 2, 'dungeon');
+    b.box(-4, F + 0.45, -109.5, 2.4, 0.9, 2, 'dungeon');
+    b.ramp(-5.2, -102.5, -2.8, -100.5, F + 0.9, F, 'z', 'dungeon', { steps: true });
+    b.ramp(-5.2, -112.5, -2.8, -110.5, F, F + 0.9, 'z', 'dungeon', { steps: true });
     // island and the key pedestal
     b.box(9, F + 0.4, -111.75, 10, 0.8, 6.5, 'dungeon', { nav: 'none' });
     b.box(9, F + 1.25, -112, 0.6, 0.9, 0.6, 'dungeon', { nav: 'none' });

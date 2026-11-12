@@ -38,9 +38,15 @@ console.log('gnomon shadow angle (rad):', shadow);
 let solved = false;
 for (let i = 0; i < 13 && !solved; i++) {
   await page.evaluate(() => window.lostTemple.press('interact'));
-  await wait(page, 2200);
-  const s = await st(page);
-  solved = s.flags.includes('sundialSolved');
+  // the ring turns for 0.6 s and the Eye must then hold the shadow for 1 s, all in game time:
+  // wait on the game clock, not the wall clock (software rendering runs at 2 to 5 FPS)
+  const r0 = (await st(page)).remaining;
+  for (let k = 0; k < 60; k++) {
+    await wait(page, 250);
+    const s = await st(page);
+    solved = s.flags.includes('sundialSolved');
+    if (solved || r0 - s.remaining > 2.4) break;
+  }
   console.log(`turn ${i + 1}: solved=${solved}`);
 }
 await shot(page, 'prog-1-sundial');

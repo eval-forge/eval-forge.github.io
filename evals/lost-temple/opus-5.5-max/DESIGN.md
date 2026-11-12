@@ -91,7 +91,7 @@ Seven scenes in three zones, all in one continuous world space. Scenes are strea
 
 **Collapsed sanctum (B).** The west half of the ceiling is gone; the east half is cracked and unstable. Noise (running, landings, thrown objects, traps) builds strain on nearby ceiling sections; past a threshold a section creaks, drops dust, then collapses into falling rock bodies. The Sun Idol sits on a weighted altar under a beam of light. Taking it starts the collapse sequence (stretch goal): the remaining ceiling falls over about 20 seconds and rubble blocks the main nave, so you leave by the side aisle or downward. The catacomb seal (Sun-Disc socket) in the sanctum floor slides aside and opens a long, steep stair that runs south under the sanctum down to Zone C. While it is shut it is just part of the floor.
 
-**Lower catacombs (C).** No sky at all. Narrow bone-lined corridors, crumbling floor tiles over a spike pit, a dart corridor with pressure plates, and a flooded chamber whose deep channel puts your torch out (the Serpent Key is on an island: wade and relight, or push a stone block into the channel as a stepping stone). The east wing holds the cracked Bone Wall and the top of the aqueduct.
+**Lower catacombs (C).** No sky at all. Narrow bone-lined corridors, crumbling floor tiles over a spike pit, a dart corridor with pressure plates, and a flooded chamber whose deep channel puts your torch out (the Serpent Key is on an island beyond it: cross the short plank bridge at the west end before it drops, or swim the channel, climb out and relight on dry stone, or push a stone block into the channel as a stepping stone). The east wing holds the cracked Bone Wall and the top of the aqueduct.
 
 **Deep vault (C).** Reached by a long ramp past more darts. The vault door needs the Serpent Key. Inside: the heaviest, richest relics, trapped pedestals, swinging blades around the inner dais, the Heart of the Temple, dormant guardian statues along the walls, and a portcullis into the guardians' lair. The aqueduct gate (escape route) is cranked open from inside.
 
@@ -104,7 +104,7 @@ All on Rapier. The player is a kinematic character controller (capsule); everyth
 | Element | Implementation |
 |---|---|
 | Rope bridge | Chain of 22 plank bodies joined by pairs of spherical joints (one per rope side), anchored at the lips of the two rims. The player's weight plus load is applied as a force on the plank underfoot, so the bridge sags more when you carry more. A stepped-on plank cracks, shakes, and after `0.55 s x (1 - 0.4 x load fraction)` its collider is dropped and a free falling plank body replaces it while the rope node stays, so the rest of the bridge keeps hanging. |
-| Plank bridge | Short catacomb version: planks resting on beams, same crack-and-drop rule. |
+| Plank bridge | Short catacomb version over the flooded chamber's deep channel: six planks on short ropes between two stone piers, same crack-and-drop rule. Keep walking and you reach the far pier with the torch still lit; stop on it and it drops you into the channel, torch and all. |
 | Crumbling floor | Fixed tiles that crack on contact (player or heavy prop) and become dynamic after 0.8 s. |
 | Rolling boulder | 1.4 m dynamic sphere (3000 kg) released by a pressure plate on the aqueduct incline. Crushes on contact above 3 m/s. |
 | Pressure plates | Sensor volumes that sum the mass of resting dynamic bodies plus the player (body mass 75 kg plus carried load). Hysteresis so they do not chatter. |
