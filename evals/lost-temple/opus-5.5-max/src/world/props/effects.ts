@@ -56,14 +56,15 @@ export class SunShaft implements Prop {
       this.target = this.ctx.sunUp() && d.y > 0.08 && this.ctx.litBySun(this.probe) ? 1 : 0;
     }
     this.lit += (this.target - this.lit) * Math.min(1, dt * 1.5);
-    const elevK = Math.min(1, Math.max(0, (d.y - 0.08) / 0.4));
+    // a low sun makes long, nearly level beams that read as grey smears: fade those out
+    const elevK = Math.min(1, Math.max(0, (d.y - 0.16) / 0.4));
     const intensity = this.lit * elevK * 0.32 * this.strength;
     // from inside zone C even a distant sunbeam would be light that is not fire: hide it
     this.mesh.visible = intensity > 0.004 && !this.ctx.cameraDark();
     if (!this.mesh.visible) return;
     this.mat.uniforms.uIntensity.value = intensity;
     this.mat.uniforms.uTime.value = this.ctx.time();
-    const len = (this.yTop - this.yFloor) / Math.max(0.15, d.y);
+    const len = (this.yTop - this.yFloor) / Math.max(0.3, d.y);
     const [x0, z0, x1, z1] = this.hole;
     // parallelepiped: x across the hole, y along the light (bottom = floor end), z across the hole
     const m = this.mesh.matrix;

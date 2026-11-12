@@ -399,6 +399,8 @@ export class Drawbridge implements Prop {
     this.obj.quaternion.copy(q);
   }
   fixedUpdate(dt: number) {
+    // lowered from elsewhere (the lever's flag, or the temple itself at darkness)
+    if (this.target !== 0 && this.ctx.run.flag('drawbridgeLowered')) this.lower();
     if (Math.abs(this.angle - this.target) < 1e-4) {
       if (this.moving) {
         this.moving = false;

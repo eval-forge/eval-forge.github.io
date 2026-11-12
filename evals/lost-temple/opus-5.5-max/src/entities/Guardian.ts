@@ -94,7 +94,8 @@ export class Guardian {
     if (!this.path || this.pathIdx >= this.path.length || this.repathT <= 0 || moved) {
       this.repathT = d.state === 'chase' || d.state === 'hunt' || d.state === 'strike' ? 0.35 : 0.9;
       this.lastTarget = [...tgt] as V3;
-      this.path = nav.findPath([this.pos.x, this.pos.y, this.pos.z], tgt, avoid ? { cost: avoid } : {});
+      // partial: with a gate shut between us and the target, go as close as the mesh allows
+      this.path = nav.findPath([this.pos.x, this.pos.y, this.pos.z], tgt, avoid ? { cost: avoid, partial: true } : { partial: true });
       this.pathIdx = 1;
     }
     let wx: number;
@@ -151,7 +152,10 @@ export class Guardian {
       const gy = polyHeight(poly, nx, nz);
       this.pos.y += (gy - this.pos.y) * Math.min(1, dt * 12);
       this.vy = 0;
-    } else if (!this.path) {
+    } else if (!this.path || !nav.findPoly(this.pos.x, this.pos.y + 0.5, this.pos.z, 1.2)) {
+      // no path, or standing off the mesh (a statue stepping down from its plinth): walk freely,
+      // easing down toward the floor of the first waypoint
+      if (this.path && this.pathIdx < this.path.length) this.pos.y += (this.path[this.pathIdx][1] - this.pos.y) * Math.min(1, dt * 3);
       this.pos.x = nx;
       this.pos.z = nz;
     } else {

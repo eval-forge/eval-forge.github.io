@@ -108,6 +108,8 @@ export class Game implements UIHost {
   /** Smoothed CPU time of the simulation/update part of a frame, and of the render call. */
   private updMs = 0;
   private rndMs = 0;
+  /** Debug only: game seconds per real second (headless tests run slow software rendering). */
+  private timeScale = 1;
   private worstT = 0;
   private camDark = false;
   private camEnv: SceneEnv = 'outdoor';
@@ -465,7 +467,18 @@ export class Game implements UIHost {
     const run = this.run;
     if (!run) return;
     run.state.unlock.flags.add(f);
-    if (f === 'lairOpen') this.nav.setGate('portcullis', true);
+    // keep the guardians' map in step even when the prop's scene is not loaded
+    const gate: Partial<Record<Flag, [string, boolean]>> = {
+      lairOpen: ['portcullis', true],
+      sealOpen: ['seal', true],
+      vaultDoorOpen: ['vaultDoor', true],
+      boneWallBroken: ['boneWall', true],
+      aqueductOpen: ['aqueduct', true],
+      drawbridgeLowered: ['drawbridge', true],
+      naveBlocked: ['nave', false],
+    };
+    const g = gate[f];
+    if (g) this.nav.setGate(g[0], g[1]);
   }
 
   litBySun(p: THREE.Vector3): boolean {
@@ -802,11 +815,15 @@ export class Game implements UIHost {
       case 'darkness': {
         this.setFlag('darkness');
         this.setFlag('lairOpen');
+        // the temple lets its keepers out: the chasm drawbridge drops so they can reach the door
+        const bridgeWasUp = !run.state.flag('drawbridgeLowered');
+        this.setFlag('drawbridgeLowered');
         this.sfx.play('gong', null, 1);
         this.sfx.play('rumble', null, 1);
         run.player.shake = Math.min(2, run.player.shake + 0.8);
         const doorOpen = run.state.flag('greatDoorOpen');
         this.toast(doorOpen ? 'Darkness. Something wakes below. The great door is closing: 90 seconds.' : 'Darkness. The temple wakes. Its door never opened for you.', 'bad', 8);
+        if (bridgeWasUp) this.toast('Chains rattle in the halls: the chasm drawbridge is coming down for them.', 'warn', 7);
         if (doorOpen) this.doorLoop = this.sfx.loop('grind', DOOR_POS, 1.2);
         break;
       }
@@ -955,7 +972,7 @@ export class Game implements UIHost {
     const tStart = performance.now();
     const raw = (now - this.last) / 1000;
     this.last = now;
-    const dt = Math.min(0.1, Math.max(0, raw));
+    const dt = Math.min(0.1, Math.max(0, raw)) * this.timeScale;
     this.time += dt;
     this.fpsFrames++;
     this.fpsT += raw;
@@ -979,13 +996,14 @@ export class Game implements UIHost {
         if (this.state === 'playing') run.player.frameUpdate(dt, this.input);
         this.acc += dt;
         let steps = 0;
-        while (this.acc >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
+        const maxSteps = MAX_STEPS_PER_FRAME * Math.ceil(this.timeScale);
+        while (this.acc >= FIXED_DT && steps < maxSteps) {
           this.fixedStep(FIXED_DT);
           this.acc -= FIXED_DT;
           steps++;
           if (!this.run) break;
         }
-        if (steps >= MAX_STEPS_PER_FRAME) this.acc = 0;
+        if (steps >= maxSteps) this.acc = 0;
         if (this.run) this.update(dt, this.acc / FIXED_DT);
       }
     }
@@ -1484,6 +1502,9 @@ export class Game implements UIHost {
       start: (seed?: number) => game.beginRun(seed),
       fps: () => game.fps,
       frameMs: () => game.frameMs,
+      speed: (k: number) => {
+        game.timeScale = Math.max(0.1, Math.min(8, k));
+      },
       cpu: () => ({ updateMs: game.updMs, renderMs: game.rndMs, info: game.debugInfo() }),
       setTime: (secondsLeft: number) => game.run?.state.clock.setRemaining(secondsLeft),
       advance: (s: number) => {
