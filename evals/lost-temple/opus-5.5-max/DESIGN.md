@@ -31,7 +31,7 @@ Seven scenes in three zones, all in one continuous world space. Scenes are strea
 ```
                          (north, -Z)
 
-   Zone C  y=-24   [ Guardians' Lair ]==portcullis (opens at darkness)==[ DEEP VAULT ]
+   Zone C  y=-24   [ Guardians' Lair ]==portcullis (opens at darkness, or early if you wake the sleepers)==[ DEEP VAULT ]
                                                                         |  vault door (Serpent Key)
                                                                         |  aqueduct gate (crank, escape route)
    Zone C  y=-14                     [ LOWER CATACOMBS ] <--------------+
@@ -83,13 +83,13 @@ Seven scenes in three zones, all in one continuous world space. Scenes are strea
 
 **Jungle approach (A).** Dense instanced trees, ferns and grass on a noise-shaped terrain. A river crossing with stepping stones, a fallen log and a current that pushes you downstream when wading. The gorge is crossed by a rope bridge of jointed planks that crack and fall about half a second after you step on them. Falling in means the river carries you back to the south rim (damage, lost time, torch out). A slow fallen-tree crossing further west is the fallback.
 
-**Temple courtyard (A).** Overgrown plazas, toppled pillar drums (some loose and pushable), the great door in a 20 m facade, two pressure plates in front of it, two pushable stone blocks, the haul cart, and the sundial. Sundial puzzle: rotate the dial ring (30 degree steps) until the Eye glyph sits under the real shadow of the gnomon, computed from the actual sun direction. Because the sun moves, the right answer changes during the day. Solving it raises the Sun-Disc.
+**Temple courtyard (A).** Overgrown plazas, toppled pillar drums (some loose and pushable), the great door in a 20 m facade, two pressure plates in front of it, two pushable stone blocks, the haul cart, and the sundial. Sundial puzzle: rotate the dial ring (30 degree steps) until the Eye glyph sits under the real shadow of the gnomon, computed from the actual sun direction. Because the sun moves, the right answer changes during the day. The dial only counts once a hand has turned the ring (the shadow drifting over the Eye on its own does nothing, but setting the Eye ahead of the shadow and waiting does). Solving it raises the Sun-Disc.
 
 **Outer cliffs (A, optional).** A cliff face above a 60 m drop. Ledges you mantle onto, vines you climb, wind gusts that shove you and can blow out a torch. Rare relics sit in the open on ledges. The Eagle's Nest at the top needs a rope (shop item) thrown over its beam.
 
-**Broken halls (B).** The roof has caved in, so the real sun throws moving shafts of light across the floor. The chasm room is crossed on sunstone tiles that are solid only while the sun hits them (tested by raycasting from each tile toward the sun through the broken roof), or along a narrow ledge past swinging blades. The drawbridge lever is on the far side. A sealed niche on the inner side is the top of the Bone Stair.
+**Broken halls (B).** The roof has caved in, so the real sun throws moving shafts of light across the floor. The chasm room is crossed on sunstone tiles that are solid only while the sun hits them (tested by raycasting from each tile toward the sun through the broken roof), or along a narrow ledge past swinging blades. The drawbridge lever is on the far side. At darkness the temple drops the drawbridge itself so its guardians can reach the great door. A sealed niche on the inner side is the top of the Bone Stair.
 
-**Collapsed sanctum (B).** The west half of the ceiling is gone; the east half is cracked and unstable. Noise (running, landings, thrown objects, traps) builds strain on nearby ceiling sections; past a threshold a section creaks, drops dust, then collapses into falling rock bodies. The Sun Idol sits on a weighted altar under a beam of light. Taking it starts the collapse sequence (stretch goal): the remaining ceiling falls over about 20 seconds and rubble blocks the main nave, so you leave by the side aisle or downward. The catacomb seal (Sun-Disc socket) opens switchback stairs down to Zone C.
+**Collapsed sanctum (B).** The west half of the ceiling is gone; the east half is cracked and unstable. Noise (running, landings, thrown objects, traps) builds strain on nearby ceiling sections; past a threshold a section creaks, drops dust, then collapses into falling rock bodies. The Sun Idol sits on a weighted altar under a beam of light. Taking it starts the collapse sequence (stretch goal): the remaining ceiling falls over about 20 seconds and rubble blocks the main nave, so you leave by the side aisle or downward. The catacomb seal (Sun-Disc socket) in the sanctum floor slides aside and opens a long, steep stair that runs south under the sanctum down to Zone C. While it is shut it is just part of the floor.
 
 **Lower catacombs (C).** No sky at all. Narrow bone-lined corridors, crumbling floor tiles over a spike pit, a dart corridor with pressure plates, and a flooded chamber whose deep channel puts your torch out (the Serpent Key is on an island: wade and relight, or push a stone block into the channel as a stepping stone). The east wing holds the cracked Bone Wall and the top of the aqueduct.
 
@@ -103,13 +103,13 @@ All on Rapier. The player is a kinematic character controller (capsule); everyth
 
 | Element | Implementation |
 |---|---|
-| Rope bridge | Chain of plank bodies joined by pairs of spherical joints (one per rope side), anchored to fixed posts. The player's weight plus load is applied as a force on the plank underfoot, so the bridge sags more when you carry more. A stepped-on plank cracks, shakes, and after `0.55 s x (1 - 0.4 x load fraction)` its collider is dropped and a free falling plank body replaces it while the rope node stays, so the rest of the bridge keeps hanging. |
+| Rope bridge | Chain of 22 plank bodies joined by pairs of spherical joints (one per rope side), anchored at the lips of the two rims. The player's weight plus load is applied as a force on the plank underfoot, so the bridge sags more when you carry more. A stepped-on plank cracks, shakes, and after `0.55 s x (1 - 0.4 x load fraction)` its collider is dropped and a free falling plank body replaces it while the rope node stays, so the rest of the bridge keeps hanging. |
 | Plank bridge | Short catacomb version: planks resting on beams, same crack-and-drop rule. |
 | Crumbling floor | Fixed tiles that crack on contact (player or heavy prop) and become dynamic after 0.8 s. |
 | Rolling boulder | 1.4 m dynamic sphere (3000 kg) released by a pressure plate on the aqueduct incline. Crushes on contact above 3 m/s. |
 | Pressure plates | Sensor volumes that sum the mass of resting dynamic bodies plus the player (body mass 75 kg plus carried load). Hysteresis so they do not chatter. |
-| Swinging blades | Kinematic pendulums driven by `angle = A sin(wt + phase)`; they knock props around and hurt the player on contact. |
-| Dart traps | Plate-triggered volleys of small CCD-enabled dynamic darts that stick where they hit. 20 damage each. |
+| Swinging blades | Kinematic pendulums driven by `angle = A sin(wt + phase)`; they knock props around and hurt the player on contact. The blades over the halls ledge swing at chest height, so you time them; the ones around the vault dais swing at head height, so you crouch under them. |
+| Dart traps | Wall emitters shoot small CCD-enabled dynamic darts (24 m/s, low gravity) that stick where they hit. 20 damage each. A floor plate fires one volley across itself from emitters 0.35 m either side of its centre line and then rests for 2.2 s, so standing on one costs three or four darts and walking over one costs one or two. Pedestal traps and tripwires fire two volleys. |
 | Push blocks | Heavy dynamic boxes with locked rotation; the player pushes them by walking into them (force scaled by player strength). |
 | Weighted pedestals | Sensor measures the mass resting on top. Lifting the relic drops the mass; if the remaining mass differs from the armed mass by more than 20% for 0.3 s, the trap fires. Swap in something of similar weight to stay safe. |
 | Loot weight | Satchel weight slows walking (down to 55% when full), lowers jumps, and multiplies stamina drain by `1 + 1.2 x load fraction`. |
@@ -158,8 +158,8 @@ All on Rapier. The player is a kinematic character controller (capsule); everyth
 | Radius curve | full above 45% fuel, then `rMin + (rMax - rMin) x (1 - (1 - f/0.45)^2)` | at 0 fuel the torch dies |
 | Relight | 2.2 s | cannot sprint, jump or grab while relighting; needs fuel |
 | Blown out by | water above torch height, wind gusts (chance scales with gust strength and 1 - gust resistance), landings above 9 m/s | |
-| Spare torches | start with 1 | lighting a spare gives a full torch |
-| Oil flasks | start with 1 | +50 fuel each |
+| Spare torches | start with 1, two more to find | lighting a spare gives a full torch. Spares lie by the sanctum's west wall, near its sconce, and at the foot of the seal stairs. |
+| Oil flasks | start with 1, three more to find | +50 fuel each. Flasks lie in the broken halls, the ossuary and the vault antechamber. |
 | Sconces | place a spare torch in any wall sconce | burns 6 minutes, radius 7 m, relight your own torch from it instantly |
 
 The torch is a point light with real cube shadows and a flicker made of layered noise. In Zone C, nothing else emits light: no emissive materials, no ambient or hemisphere light, black background and black fog. Outside the torch radius the frame is true black (checked by an automated pixel readback test).
@@ -236,9 +236,9 @@ They wake at darkness, deepest first, and sweep outward toward the door along th
 | Crawler | fast: 2.4 m/s roam, 6.3 m/s rush | blind, hunts by sound: hears a noise if `loudness x 28 m` exceeds the distance | Dormant, Waking, Roam, Investigate, Hunt, Search. Throwing an object makes a decoy noise. |
 | Shadow | 3.0 m/s lurk, 7.2 m/s strike | senses light: path costs avoid lit polygons, never enters light | Dormant, Lurk, Stalk (circles at your light radius + 1.5 m), Strike (when your light is under 3.5 m or out), Flee (if light reaches it) |
 
-**Spawn schedule after darkness:** lair (sentinel, crawler, shadow) at 0 s; vault statues (sentinel) at 8 s; catacombs (crawler, shadow) at 18 s; sanctum (sentinel) at 30 s; halls (crawler) at 45 s. They all sweep toward the great door unless they have a lead on you.
+**Spawn schedule after darkness:** lair (sentinel, crawler, shadow) at 0 s; vault statues (sentinel) at 8 s; catacombs (crawler, shadow) at 18 s; sanctum (sentinel) at 30 s; halls (crawler) at 45 s. They all sweep toward the great door unless they have a lead on you. The lair sleepers and the vault statue are in the level (dormant) from the start; a scheduled spawn waits (up to 25 s) while you stand within 14 m of its spawn point, so nothing rises out of the wall in your face.
 
-**Pathfinding:** a navmesh of convex polygons per scene, stitched across scene borders, A* over polygons, then the funnel algorithm to pull the path tight. Closed doors, fallen floors and rubble disable polygons. Guardians repath every 0.4 s while chasing.
+**Pathfinding:** a navmesh of convex polygons per scene, stitched across scene borders, A* over polygons, then the funnel algorithm to pull the path tight. Closed doors, fallen floors and rubble disable polygons. Guardians repath every 0.35 s while chasing (0.9 s otherwise). When a gate is shut between a guardian and its goal, A* returns a partial path to the reachable spot nearest the goal, so guardians press up against closed doors instead of standing still.
 
 **Heartbeat:** when any awake guardian is within 18 m, a heartbeat plays, faster and louder as it gets closer.
 
@@ -249,7 +249,7 @@ They wake at darkness, deepest first, and sweep outward toward the door along th
 | Action | Default | Numbers |
 |---|---|---|
 | Walk / sprint / crouch | WASD, Shift, C | 4.2 / 6.6 / 2.0 m/s, multiplied by the load factor |
-| Jump | Space | 5.2 m/s, costs 12 stamina |
+| Jump | Space | 6.4 m/s (less when loaded), costs 12 stamina |
 | Climb | walk into a vine or rope | 2.2 m/s, 10 stamina/s |
 | Mantle | Space at a ledge you can reach | 0.45 s pull-up |
 | Grab / throw | left mouse: grab, left again: throw; right mouse: drop | up to 25 kg can be lifted |
@@ -275,5 +275,5 @@ Jungle ambience by day (filtered-noise insects, FM birdsong, river), wind on the
 
 - **Hand-drawn map** (M): parchment and ink drawn in code, revealed in a radius around where you have been, one sheet for the surface and one for underground.
 - **Idol collapse:** taking the Sun Idol brings the sanctum ceiling down and blocks the main nave.
-- **Ghost replay:** your best run is recorded and replayed as a translucent figure (unlit, so in Zone C you only see it in your torchlight).
+- **Ghost replay:** your best escaped run is recorded and replayed as a translucent, non-emissive figure. It is lit like everything else, so in Zone C you only see it in fire light.
 - **Gamepad:** standard mapping, sticks to move and look.

@@ -14,7 +14,7 @@ import { room } from './common';
 import { SunstoneTiles } from '../props/puzzles';
 import { SunShaft } from '../props/effects';
 import { Blade, DartTrap, WeightedPedestal, CrumbleTiles } from '../props/traps';
-import { Drawbridge, Lever, Sconce } from '../props/mechanisms';
+import { Drawbridge, Lever, Sconce, SupplyCache } from '../props/mechanisms';
 
 const ROOF_HOLES_ENTRANCE: [number, number, number, number][] = [[-2, -9, 2, -6]];
 const ROOF_HOLES_INNER: [number, number, number, number][] = [
@@ -206,6 +206,7 @@ export const halls: SceneDef = {
     );
     // sconces
     rt.addProp(new Sconce(ctx, rt, 'hallSconceW', [-19.75, 2.3, -41.5], Math.PI / 2));
+    rt.addProp(new SupplyCache(ctx, rt, 'hallsOil', 'oil', [-15.8, 0, -36.2], 0.4));
     rt.addProp(new Sconce(ctx, rt, 'hallSconceE', [19.75, 2.3, -38], -Math.PI / 2));
     rt.addProp(new Sconce(ctx, rt, 'annexSconce', [27, 2.3, -42.25], 0));
     yield;

@@ -46,14 +46,13 @@ export class RopeBridge implements Prop {
   private creak = 0;
   private fallen: Set<number>;
 
-  constructor(private ctx: SceneCtx, private rt: SceneRuntime, public id: string, private south: THREE.Vector3, private north: THREE.Vector3, width = 1.8, n = 29) {
+  constructor(private ctx: SceneCtx, private rt: SceneRuntime, public id: string, private south: THREE.Vector3, private north: THREE.Vector3, width = 1.8, n = 29, sag = 0.9) {
     const world = ctx.physics.world;
     const span = south.distanceTo(north);
     this.pitch = (span * 1.007) / n;
     this.halfW = width / 2 - 0.05;
     const dir = new THREE.Vector3().subVectors(north, south).normalize();
     this.fallen = new Set((ctx.run.get('bridge:' + id) as number[] | undefined) ?? []);
-    const sag = 0.9;
     for (let i = 0; i < n; i++) {
       const u = (i + 0.5) / n;
       const c = south.clone().lerp(north, u);
@@ -258,8 +257,15 @@ export class CrumbleTiles implements Prop {
       }
       if (t.timer.update(dt)) {
         t.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true);
-        for (let k = 0; k < t.body.numColliders(); k++) t.body.collider(k).setCollisionGroups(GROUP_DEBRIS);
-        t.body.setAngvel({ x: (Math.random() - 0.5) * 2, y: 0, z: (Math.random() - 0.5) * 2 }, true);
+        for (let k = 0; k < t.body.numColliders(); k++) {
+          const c = t.body.collider(k);
+          c.setCollisionGroups(GROUP_DEBRIS);
+          // shrink it a little so it cannot wedge between its neighbours on the way down
+          const he = c.halfExtents();
+          if (he) c.setHalfExtents({ x: Math.max(0.1, he.x - 0.12), y: he.y, z: Math.max(0.1, he.z - 0.12) });
+        }
+        t.body.setLinvel({ x: 0, y: -1.2, z: 0 }, true);
+        t.body.setAngvel({ x: (Math.random() - 0.5) * 0.8, y: 0, z: (Math.random() - 0.5) * 0.8 }, true);
         this.ctx.sfx.play('crumble', t.base, 1);
         this.ctx.noise(t.base.clone(), 0.7, 'trap', false);
         this.fallen.add(i);
@@ -392,12 +398,12 @@ export class DartTrap implements Prop {
     shaft.rotateX(Math.PI / 2);
     this.dartGeo = normalizeGeometry(shaft);
   }
-  /** Fire the given emitters (or all). */
-  fire(which?: number[]) {
+  /** Fire the given emitters (or all): one volley, or a second one a moment later. */
+  fire(which?: number[], volleys = 2) {
     const list = which ?? this.emitters.map((_, i) => i);
     for (const e of list) {
       this.queue.push({ t: 0, e });
-      this.queue.push({ t: 0.15 + Math.random() * 0.1, e });
+      if (volleys > 1) this.queue.push({ t: 0.15 + Math.random() * 0.1, e });
     }
     const p = this.emitters[list[0]]?.pos;
     if (p) {
@@ -434,7 +440,8 @@ export class DartTrap implements Prop {
       const onIt = playerOn(pl, p.x - h, p.z - h, p.x + h, p.z + h, p.y, 0.5) || massInBox(this.ctx.physics, new THREE.Vector3(p.x, p.y + 0.25, p.z), new THREE.Vector3(h, 0.25, h)) > 4;
       if (onIt) {
         this.cool[i] = 2.2;
-        this.fire(p.emitters);
+        // a plate fires one volley across itself: a thief crossing it takes a dart or two
+        this.fire(p.emitters, 1);
       }
     }
     for (const q of this.queue) q.t -= dt;

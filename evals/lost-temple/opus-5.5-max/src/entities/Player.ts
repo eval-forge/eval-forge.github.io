@@ -38,6 +38,8 @@ export interface Held {
   body: RAPIER.RigidBody;
   mass: number;
   savedGroups: number[];
+  /** Seconds the object has trailed too far behind the hold point (snagged on something). */
+  far: number;
 }
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -229,7 +231,8 @@ export class Player {
     }
     this.waterDepth = this.inWater ? Math.max(0, this.waterSurface - this.feetY) : 0;
     const swimming = this.waterDepth > 1.45;
-    this.torchSubmerged = this.inWater !== null && this.feetY + this.torchHeight < this.waterSurface - 0.02;
+    // a swimmer has no hand free to hold the flame clear of the water
+    this.torchSubmerged = this.inWater !== null && (swimming || this.feetY + this.torchHeight < this.waterSurface - 0.02);
 
     if (this.mode === 'mantle') {
       this.updateMantle(dt);
@@ -291,7 +294,8 @@ export class Player {
     }
 
     // mantle / climb / jump
-    if (this.jumpBuffer > 0 && !swimming && this.tryMantle(lf)) return;
+    // mantling also gets a swimmer out over a sheer edge (the flooded chamber's channel)
+    if (this.jumpBuffer > 0 && this.tryMantle(lf)) return;
     if (this.tryClimb(wish, moving)) return;
     if (this.jumpBuffer > 0 && (this.grounded || this.coyote > 0) && !swimming) {
       if (run.stamina.spend(JUMP_COST * drainMul)) {
@@ -617,7 +621,7 @@ export class Player {
     }
     body.setAngularDamping(4);
     body.wakeUp();
-    this.held = { body, mass, savedGroups: saved };
+    this.held = { body, mass, savedGroups: saved, far: 0 };
     this.host.grabbed(body);
     return true;
   }
@@ -666,7 +670,10 @@ export class Player {
     const dy = target.y - t.y;
     const dz = target.z - t.z;
     const d = Math.hypot(dx, dy, dz);
-    if (d > 2.6) {
+    // a quick turn swings the object round behind you for a moment; only let go of it when it
+    // stays snagged (behind a wall, under a door) for a while
+    h.far = d > 2.6 ? h.far + dt : 0;
+    if (h.far > 0.35 || d > 6) {
       this.release(false);
       return;
     }

@@ -13,7 +13,7 @@ import { box3 } from '../SceneDef';
 import type { LevelBuilder } from '../LevelBuilder';
 import { useKeyItem } from '../../logic/unlocks';
 import { CeilingCollapse, WeightedPedestal } from '../props/traps';
-import { SlidingSlab, Sconce } from '../props/mechanisms';
+import { SlidingSlab, Sconce, SupplyCache } from '../props/mechanisms';
 import { SunShaft } from '../props/effects';
 import { boxMesh, cylMesh, fixedBody } from '../props/util';
 import { rockGeometry, normalizeGeometry } from '../../render/geometry';
@@ -243,6 +243,7 @@ export const sanctum: SceneDef = {
     R.relicSpawn('s5', 'sanctum', 'B', [20.5, 0, -86], { minRarity: 'rare' });
     R.relicSpawn('s6', 'sanctum', 'B', [-2.5, 0, -107], { minRarity: 'uncommon' });
     rt.addProp(new Sconce(ctx, rt, 'sanctumSconceW', [-23.75, 2.4, -80], Math.PI / 2));
+    rt.addProp(new SupplyCache(ctx, rt, 'sanctumTorch', 'torch', [-20.4, 0, -84.6], 1.1));
     rt.addProp(new Sconce(ctx, rt, 'sanctumSconceE', [23.75, 2.4, -94], -Math.PI / 2));
     // a cracked lintel over the side doorway, purely decoration
     const lintel = boxMesh(ctx.mats, 'sandstone', 6.4, 0.5, 0.6, 0.5);

@@ -1,12 +1,80 @@
-// Walk across the jungle rope bridge carrying nothing, then again heavy, and report how many
-// planks cracked and dropped behind you and whether you made it across.
-// Usage: node scripts/bridge.mjs [run|walk]
+// Walk across the jungle rope bridge and report how many planks cracked and dropped behind you
+// and whether you made it across. `flood` does the catacomb plank bridge over the flooded
+// chamber's channel instead: walk over it with a lit torch, then (in a fresh run) stop on it.
+// Usage: node scripts/bridge.mjs [run|walk|flood]
 import { launch, startRun, st, wait, shot } from './playtest-lib.mjs';
 import fs from 'node:fs';
 const gait = process.argv[2] || 'walk';
 fs.mkdirSync(process.env.LT_SHOTS || 'shots', { recursive: true });
 const { browser, page, errors } = await launch({ width: 480, height: 270 });
 await startRun(page, 31337);
+if (gait === 'flood') {
+  const F = -14;
+  let fails = 0;
+  const check = (name, ok, extra = '') => {
+    console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
+    if (!ok) fails++;
+  };
+  const planks = () =>
+    page.evaluate(() => {
+      let out = null;
+      window.lostTemple.game.run.scenes.forEachProp((p) => {
+        if (p.id === 'floodPlanks' && p.planks) out = p.planks.map((k) => k.timer.state);
+      });
+      return out;
+    });
+  const lit = () => page.evaluate(() => window.lostTemple.game.run.state.torch.lit);
+  const setup = (p) =>
+    page.evaluate(
+      ([p]) => {
+        const lt = window.lostTemple;
+        lt.noGuardians();
+        lt.god(true);
+        lt.teleport(p, 0);
+        lt.look(0, 0);
+        lt.light();
+      },
+      [p],
+    );
+  // 1. walk straight over from the near steps to the far ones
+  await setup([-4, F + 0.1, -100.4]);
+  await wait(page, 3000);
+  console.log('planks before:', (await planks()).join(','));
+  await page.evaluate(() => window.lostTemple.move(0, 1));
+  let s = await st(page);
+  for (let i = 0; i < 80; i++) {
+    await wait(page, 300);
+    s = await st(page);
+    if (s.pos[2] < -111 || s.mode === 'swim') break;
+  }
+  await page.evaluate(() => window.lostTemple.stop());
+  await wait(page, 2500);
+  s = await st(page);
+  const after = await planks();
+  check('walk over the plank bridge with the torch still lit', s.pos[2] < -110 && (await lit()), `z ${s.pos[2].toFixed(2)}, feet y ${s.feet[1].toFixed(2)}, mode ${s.mode}`);
+  check('its planks crack and drop behind you', after.filter((k) => k !== 'intact').length >= 4, after.join(','));
+  await page.evaluate(() => window.lostTemple.look(Math.PI, -0.3));
+  await wait(page, 1200);
+  await shot(page, 'bridge-flood-behind');
+  // 2. a fresh run: stop on the second plank
+  await startRun(page, 4321);
+  await setup([-4, F + 1.0, -103.4]);
+  await wait(page, 3000);
+  await page.evaluate(() => window.lostTemple.move(0, 1));
+  for (let i = 0; i < 40; i++) {
+    await wait(page, 150);
+    if ((await st(page)).pos[2] < -105.4) break;
+  }
+  await page.evaluate(() => window.lostTemple.stop());
+  const stoodAt = (await st(page)).pos[2];
+  await wait(page, 5000);
+  s = await st(page);
+  check('stop on it and it drops you into the channel, torch and all', (s.mode === 'swim' || s.feet[1] < F + 0.3) && !(await lit()), `stopped at z ${stoodAt.toFixed(2)}; now feet y ${s.feet[1].toFixed(2)}, mode ${s.mode}, planks ${(await planks()).join(',')}`);
+  console.log(fails ? `FLOOD BRIDGE: ${fails} FAILED` : 'FLOOD BRIDGE: ALL PASS');
+  console.log('errors:', errors.length ? errors.slice(0, 20).join('\n') : 'none');
+  await browser.close();
+  process.exit(fails ? 1 : 0);
+}
 await page.evaluate(() => {
   const lt = window.lostTemple;
   lt.teleport([2, 1.0, 81], 0);

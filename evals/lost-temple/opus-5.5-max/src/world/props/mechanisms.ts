@@ -9,7 +9,7 @@ import { SconceFlame } from '../../logic/torch';
 import type { Flag } from '../../logic/unlocks';
 import type { SceneCtx, SceneRuntime } from '../SceneDef';
 import type { Interactable, Prop } from '../types';
-import { boxMesh, cylMesh, massInBox, playerOn, fixedBody, kinematicBody, setBodyPose, smooth01 } from './util';
+import { boxMesh, cylMesh, massInBox, playerOn, fixedBody, smooth01 } from './util';
 
 // ---------------------------------------------------------------------------
 // Push block
@@ -130,7 +130,9 @@ export class SlidingSlab implements Prop {
     this.id = o.id;
     this.closed = new THREE.Vector3(...o.pos);
     this.offset = new THREE.Vector3(...o.openOffset);
-    this.body = rt.trackBody(kinematicBody(ctx.physics, o.pos[0], o.pos[1], o.pos[2]));
+    // A fixed body that is teleported while it moves: Rapier's character controller sticks on
+    // kinematic bodies you stand on (the closed seal is part of the sanctum floor).
+    this.body = rt.trackBody(fixedBody(ctx.physics, o.pos[0], o.pos[1], o.pos[2]));
     if (o.bars) {
       // portcullis: one box collider, a visual group of bars spread along the gate's long side
       const g = new THREE.Group();
@@ -165,7 +167,6 @@ export class SlidingSlab implements Prop {
   }
   private apply() {
     const p = this.closed.clone().addScaledVector(this.offset, smooth01(this.open));
-    setBodyPose(this.body, p);
     this.body.setTranslation({ x: p.x, y: p.y, z: p.z }, true);
     this.obj.position.copy(p);
   }
@@ -369,7 +370,8 @@ export class Drawbridge implements Prop {
     const lowered = ctx.run.flag('drawbridgeLowered');
     this.angle = lowered ? 0 : -Math.PI / 2;
     this.target = this.angle;
-    this.body = rt.trackBody(kinematicBody(ctx.physics, hinge.x, hinge.y, hinge.z));
+    // fixed and teleported while it swings down (the character controller sticks on kinematic decks)
+    this.body = rt.trackBody(fixedBody(ctx.physics, hinge.x, hinge.y, hinge.z));
     const cd = RAPIER.ColliderDesc.cuboid(width / 2, 0.2, length / 2).setTranslation(0, -0.2, length / 2).setCollisionGroups(GROUP_STATIC);
     const c = ctx.physics.world.createCollider(cd, this.body);
     ctx.physics.setOwner(c, { kind: 'drawbridge', surface: 'wood' });
@@ -394,7 +396,8 @@ export class Drawbridge implements Prop {
   }
   private apply() {
     const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.angle);
-    setBodyPose(this.body, this.hinge, q);
+    this.body.setTranslation({ x: this.hinge.x, y: this.hinge.y, z: this.hinge.z }, true);
+    this.body.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }, true);
     this.obj.position.copy(this.hinge);
     this.obj.quaternion.copy(q);
   }
@@ -604,6 +607,59 @@ export class KeyPickup implements Prop {
   }
   update() {
     if (this.obj.visible) this.obj.rotation.y += 0.01;
+  }
+  dispose() {}
+}
+
+// ---------------------------------------------------------------------------
+// Supplies a luckless earlier thief left behind: an oil flask or a spare torch on a rotten bag
+
+export class SupplyCache implements Prop {
+  obj = new THREE.Group();
+  private item = new THREE.Group();
+  constructor(private ctx: SceneCtx, rt: SceneRuntime, public id: string, kind: 'oil' | 'torch', pos: [number, number, number], rotY = 0) {
+    const bag = boxMesh(ctx.mats, 'burlap', 0.46, 0.14, 0.32, 1, 0x9a8a70);
+    bag.position.y = 0.07;
+    bag.rotation.y = 0.3;
+    this.obj.add(bag);
+    if (kind === 'oil') {
+      const jar = cylMesh(ctx.mats, 'clay', 0.07, 0.09, 0.2, 10);
+      jar.position.y = 0.24;
+      const neck = cylMesh(ctx.mats, 'clay', 0.035, 0.05, 0.07, 8);
+      neck.position.y = 0.375;
+      const plug = cylMesh(ctx.mats, 'cloth', 0.03, 0.03, 0.04, 6);
+      plug.position.y = 0.43;
+      this.item.add(jar, neck, plug);
+    } else {
+      const stick = cylMesh(ctx.mats, 'darkWood', 0.025, 0.03, 0.62, 6);
+      stick.rotation.z = Math.PI / 2;
+      stick.position.y = 0.17;
+      const head = cylMesh(ctx.mats, 'burlap', 0.05, 0.05, 0.14, 8);
+      head.rotation.z = Math.PI / 2;
+      head.position.set(0.3, 0.17, 0);
+      this.item.add(stick, head);
+    }
+    this.obj.add(this.item);
+    this.obj.position.set(pos[0], pos[1], pos[2]);
+    this.obj.rotation.y = rotY;
+    rt.group.add(this.obj);
+    if (ctx.run.get('supply:' + id)) this.item.visible = false;
+    const label = kind === 'oil' ? 'oil flask' : 'spare torch';
+    rt.addInteract({
+      kind: 'interact',
+      id,
+      position: new THREE.Vector3(pos[0], pos[1] + 0.25, pos[2]),
+      prompt: () => (this.item.visible ? `E  Take the ${label}` : null),
+      interact: () => {
+        if (!this.item.visible) return;
+        this.item.visible = false;
+        ctx.run.set('supply:' + id, true);
+        if (kind === 'oil') ctx.run.torch.oilFlasks++;
+        else ctx.run.torch.spareTorches++;
+        ctx.sfx.play('pickup', new THREE.Vector3(pos[0], pos[1] + 0.2, pos[2]), 0.8);
+        ctx.toast(kind === 'oil' ? 'A sealed oil flask. R pours it into your torch.' : 'A spare torch. When yours burns out, T lights it; E sets one in a sconce.', 'good');
+      },
+    });
   }
   dispose() {}
 }

@@ -2,7 +2,8 @@
  * Zone C: the lower catacombs. No ambient light at all: only your torch and the sconces you
  * light. Stairs from the sanctum seal lead to an ossuary, a gallery whose floor crumbles over
  * a spike pit, a flooded chamber where the Serpent Key waits on an island past a channel deep
- * enough to drown your torch, a dart corridor, and the ramp down to the serpent door of the
+ * enough to drown your torch (cross on planks that drop out under you, swim it, or push a block
+ * in), a dart corridor, and the ramp down to the serpent door of the
  * vault. The Bone Wing hides the start of the Bone Stair behind a cracked wall that can only
  * be kicked from this side: once broken, it is a shortcut straight up to the broken halls.
  */
@@ -12,8 +13,8 @@ import { box3 } from '../SceneDef';
 import type { LevelBuilder } from '../LevelBuilder';
 import { useKeyItem } from '../../logic/unlocks';
 import { room, rampY, rampCeiling, rampWalls, boneNiches } from './common';
-import { CrumbleTiles, DartTrap, Tripwire } from '../props/traps';
-import { PushBlock, Sconce, SlidingSlab, KeyPickup, BreakableWall } from '../props/mechanisms';
+import { CrumbleTiles, DartTrap, Tripwire, RopeBridge } from '../props/traps';
+import { PushBlock, Sconce, SlidingSlab, KeyPickup, BreakableWall, SupplyCache } from '../props/mechanisms';
 
 export const F = -14;
 export const V = -24;
@@ -56,9 +57,15 @@ export const catacombs: SceneDef = {
   respawn: [-17, F + 0.1, -70],
   layout(b: LevelBuilder) {
     // ---- the seal stairwell ----
-    b.ramp(-19, -104, -15, -76, 0, F, 'z', 'dungeonFloor', { steps: true, gate: 'seal' });
-    b.wallZ(-104, -76, -19.5, -19, F - 1, -0.6, 'dungeon', [], { nav: 'none' });
-    b.wallZ(-104, -76, -15, -14.5, F - 1, -0.6, 'dungeon', [], { nav: 'none' });
+    // The stairs pass high over the dart corridor (z -101..-97), so the steps and the stairwell
+    // walls follow the ramp in 2 m bands instead of standing on the catacomb floor.
+    b.ramp(-19, -104, -15, -76, 0, F, 'z', 'dungeonFloor', { steps: true, gate: 'seal', stepDepth: 1.2 });
+    for (let z = -104; z < -76 - 1e-3; z += 2) {
+      const y0 = rampY(z + 2, -104, 0, -76, F) - 1.2;
+      const y1 = Math.min(-0.6, rampY(z, -104, 0, -76, F) + 4.8);
+      b.wallZ(z, z + 2, -19.5, -19, y0, y1, 'dungeon', [], { nav: 'none' });
+      b.wallZ(z, z + 2, -15, -14.5, y0, y1, 'dungeon', [], { nav: 'none' });
+    }
     for (let z = -93; z < -76 - 1e-3; z += 2) {
       const y = rampY(z, -104, 0, -76, F) + 3.6;
       b.box(-17, y + 0.4, z + 1, 5, 0.8, 2, 'dungeon', { nav: 'none' });
@@ -102,6 +109,13 @@ export const catacombs: SceneDef = {
     b.floor(-6, -116, 22, -108.5, F, 'dungeonFloor', { thick: 2.4 });
     b.floor(-6, -108.5, 22, -104.5, F - 1.8, 'dungeonFloor', { nav: 'none', thick: 0.6 });
     b.water(-6, -116, 22, -96, F - 2, F + 0.6);
+    // stone piers either side of the channel at the west end, carrying the plank bridge
+    for (const sz of [1, -1]) {
+      const zc = sz > 0 ? -103.5 : -109.5;
+      b.box(-4, F + 0.45, zc, 2.4, 0.9, 2, 'dungeon');
+      b.box(-4, F + 0.3, zc + sz * 1.4, 2.4, 0.6, 0.8, 'dungeon');
+      b.box(-4, F + 0.15, zc + sz * 2.2, 2.4, 0.3, 0.8, 'dungeon');
+    }
     // island and the key pedestal
     b.box(9, F + 0.4, -111.75, 10, 0.8, 6.5, 'dungeon', { nav: 'none' });
     b.box(9, F + 1.25, -112, 0.6, 0.9, 0.6, 'dungeon', { nav: 'none' });
@@ -165,6 +179,10 @@ export const catacombs: SceneDef = {
     }
     yield;
 
+    // the plank bridge over the channel: six planks on ropes that crack and drop like the gorge
+    // bridge's, so you cross without stopping or go into the water, torch and all
+    rt.addProp(new RopeBridge(ctx, rt, 'floodPlanks', new THREE.Vector3(-4, F + 0.84, -104.5), new THREE.Vector3(-4, F + 0.84, -108.5), 1.8, 6, 0.12));
+
     // push block that can fill the channel, and the Serpent Key on the island
     rt.addProp(new PushBlock(ctx, rt, 'floodBlock', [1, F, -101], [1.8, 1.8, 1.8], 900, 'dungeon'));
     rt.addProp(new KeyPickup(ctx, rt, 'serpentKey', 'serpentKey', [9, F + 1.7, -112], 'Serpent Key'));
@@ -173,7 +191,7 @@ export const catacombs: SceneDef = {
     const emitters: { pos: THREE.Vector3; dir: THREE.Vector3 }[] = [];
     const plates = DART_PLATES.map((p) => {
       const ids: number[] = [];
-      for (const dx of [-0.75, 0.75]) {
+      for (const dx of [-0.35, 0.35]) {
         ids.push(emitters.length);
         emitters.push({ pos: new THREE.Vector3(p.x + dx, F + (dx < 0 ? 1.1 : 1.45), -100.92), dir: new THREE.Vector3(0, 0, 1) });
         ids.push(emitters.length);
@@ -259,6 +277,9 @@ export const catacombs: SceneDef = {
     for (const [id, pos, rot] of sconces) rt.addProp(new Sconce(ctx, rt, id, pos, rot));
 
     // relics: everything down here is worth more
+    rt.addProp(new SupplyCache(ctx, rt, 'footTorch', 'torch', [-12, F, -73.5], 2.2));
+    rt.addProp(new SupplyCache(ctx, rt, 'ossuaryOil', 'oil', [8.5, F, -72], -0.6));
+    rt.addProp(new SupplyCache(ctx, rt, 'anteOil', 'oil', [-31, V, -122.6], 0.9));
     R.relicSpawn('k1', 'catacombs', 'C', [-22.6, F + 0.9, -66]);
     R.relicSpawn('k2', 'catacombs', 'C', [10.5, F + 1.0, -64]);
     R.relicSpawn('k3', 'catacombs', 'C', [-1.2, F + 1.75, -77.7], { maxRarity: 'rare' });

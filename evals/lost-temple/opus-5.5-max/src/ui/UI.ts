@@ -47,7 +47,7 @@ const CONTROLS: [string, string][] = [
   ['WASD', 'move'],
   ['Mouse', 'look'],
   ['Shift', 'sprint (stamina)'],
-  ['C / Ctrl', 'crouch (quiet, ducks blades)'],
+  ['C / Ctrl', 'crouch (quiet, ducks head-high blades)'],
   ['Space', 'jump, mantle a ledge'],
   ['Walk into vines', 'climb (Space to hop off)'],
   ['E', 'interact, stash a relic, swap on a pedestal'],
