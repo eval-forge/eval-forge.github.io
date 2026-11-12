@@ -111,7 +111,7 @@ export class PlankBridge implements Entity {
       railGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
       railGeo.setIndex(idx);
     }
-    this.planks = new THREE.InstancedMesh(plankGeo, game.mats.get('wood', o.dark), n);
+    this.planks = new THREE.InstancedMesh(game.mats.prep(plankGeo, 'wood'), game.mats.get('wood', o.dark), n);
     this.rails = new THREE.InstancedMesh(railGeo, game.mats.get('rope', o.dark), n);
     for (const im of [this.planks, this.rails]) {
       im.castShadow = true;
@@ -345,7 +345,7 @@ export class CrumbleFloor implements Entity {
     this.tz = (z1 - z0) / nz;
     const saved = new Set(game.run.get<number[]>(key, []));
     const g = new THREE.BoxGeometry(this.tx * 0.97, 0.22, this.tz * 0.97);
-    this.mesh = new THREE.InstancedMesh(g, game.mats.get(mat, dark), nx * nz);
+    this.mesh = new THREE.InstancedMesh(game.mats.prep(g, mat), game.mats.get(mat, dark), nx * nz);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;
@@ -865,7 +865,7 @@ export class DebrisField implements Entity {
     mat: string,
     dark: boolean,
   ) {
-    this.mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), game.mats.get(mat, dark), MAX_DEBRIS);
+    this.mesh = new THREE.InstancedMesh(game.mats.prep(new THREE.BoxGeometry(1, 1, 1), mat), game.mats.get(mat, dark), MAX_DEBRIS);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;

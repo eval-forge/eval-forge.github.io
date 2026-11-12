@@ -117,7 +117,7 @@ function blocks(o: BlockOpts): HTMLCanvasElement {
     c = mul3(c, tintK * (0.9 + n2 * 0.2));
     // Slight warm/cool shift per block.
     c = [c[0] * (0.97 + hueK * 0.06), c[1], c[2] * (1.03 - hueK * 0.06)];
-    c = mul3(c, 1 - o.grit * (speck > 0.62 ? (speck - 0.62) * 2.2 : 0));
+    c = mul3(c, 1 - o.grit * (speck > 0.62 ? (speck - 0.62) * 1.1 : 0));
     // Chipped, darker edges then mortar.
     const wobble = o.mortarW * (0.75 + n2 * 0.6);
     const bevel = clamp01((edge - wobble) / (o.mortarW * 2.2));
@@ -130,7 +130,7 @@ function blocks(o: BlockOpts): HTMLCanvasElement {
     if (o.moss && o.mossAmount) {
       const m = tfbm(u, v, 6, 4, seed + 5) * 0.7 + (1 - bevel) * 0.25 + tfbm(u, v, 40, 2, seed + 6) * 0.2;
       const k = clamp01((m - (1 - o.mossAmount)) * 4);
-      c = mix3(c, mul3(o.moss, 0.7 + n2 * 0.6), k * 0.85);
+      c = mix3(c, mul3(o.moss, 0.75 + n2 * 0.4), k * 0.7);
     }
     return [c[0], c[1], c[2]];
   });
@@ -178,9 +178,9 @@ function barkTex(seed: number): HTMLCanvasElement {
   return paint(256, (u, v) => {
     const ridges = Math.abs(tfbm(u * 2, v * 0.3, 10, 4, seed) - 0.5) * 2;
     const n = tfbm(u, v, 24, 3, seed + 2);
-    const k = 0.35 + ridges * 0.6 + n * 0.2;
+    const k = 0.55 + ridges * 0.5 + n * 0.2;
     const moss = clamp01((tfbm(u, v, 5, 3, seed + 8) - 0.55) * 4);
-    const c = mix3([0.34 * k, 0.25 * k, 0.17 * k], [0.24, 0.36, 0.14], moss * 0.6);
+    const c = mix3([0.56 * k, 0.45 * k, 0.33 * k], [0.3, 0.37, 0.2], moss * 0.55);
     return c;
   });
 }
@@ -206,17 +206,17 @@ function leafTex(seed: number): HTMLCanvasElement {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(ang);
-    const g = 90 + rng.int(0, 70);
+    const g = 86 + rng.int(0, 44);
     const grad = ctx.createLinearGradient(0, 0, 0, -len);
-    grad.addColorStop(0, `rgb(${20 + rng.int(0, 20)},${g - 30},${14 + rng.int(0, 16)})`);
-    grad.addColorStop(1, `rgb(${50 + rng.int(0, 40)},${g + 30},${30 + rng.int(0, 30)})`);
+    grad.addColorStop(0, `rgb(${36 + rng.int(0, 16)},${g - 26},${24 + rng.int(0, 12)})`);
+    grad.addColorStop(1, `rgb(${72 + rng.int(0, 34)},${g + 20},${42 + rng.int(0, 22)})`);
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.quadraticCurveTo(w, -len * 0.5, 0, -len);
     ctx.quadraticCurveTo(-w, -len * 0.5, 0, 0);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(10,40,10,0.5)';
+    ctx.strokeStyle = 'rgba(24,44,18,0.5)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -257,7 +257,7 @@ function vineTex(seed: number): HTMLCanvasElement {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(dir * (0.6 + rng.next() * 0.9));
-      ctx.fillStyle = `rgb(${30 + rng.int(0, 30)},${95 + rng.int(0, 70)},${24 + rng.int(0, 30)})`;
+      ctx.fillStyle = `rgb(${52 + rng.int(0, 28)},${92 + rng.int(0, 40)},${36 + rng.int(0, 24)})`;
       ctx.beginPath();
       ctx.ellipse(0, -11, 6 + rng.next() * 3, 13 + rng.next() * 5, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -549,31 +549,31 @@ export class TextureLibrary {
         return toTexture(blocks({
           size: 512, rows: 4, cols: 3, base: [0.74, 0.66, 0.52], dark: [0.5, 0.43, 0.33], mortar: [0.26, 0.22, 0.17],
           mortarW: 0.028, seed: 11, vary: 0.22, grit: 0.5, bond: true, streak: 0.22,
-          moss: [0.3, 0.4, 0.17], mossAmount: 0.3,
+          moss: [0.33, 0.37, 0.21], mossAmount: 0.3,
         }));
       case 'moss':
         return toTexture(blocks({
           size: 512, rows: 4, cols: 3, base: [0.62, 0.6, 0.48], dark: [0.38, 0.38, 0.3], mortar: [0.18, 0.2, 0.12],
           mortarW: 0.03, seed: 23, vary: 0.2, grit: 0.5, bond: true, streak: 0.3,
-          moss: [0.24, 0.4, 0.13], mossAmount: 0.62,
+          moss: [0.29, 0.36, 0.19], mossAmount: 0.6,
         }));
       case 'roof':
         return toTexture(blocks({
           size: 512, rows: 2, cols: 2, base: [0.6, 0.55, 0.46], dark: [0.36, 0.32, 0.27], mortar: [0.2, 0.18, 0.14],
           mortarW: 0.02, seed: 29, vary: 0.16, grit: 0.6, bond: false, streak: 0.35,
-          moss: [0.26, 0.36, 0.15], mossAmount: 0.4,
+          moss: [0.3, 0.35, 0.2], mossAmount: 0.4,
         }));
       case 'flag':
         return toTexture(blocks({
-          size: 512, rows: 5, cols: 4, base: [0.7, 0.65, 0.54], dark: [0.48, 0.44, 0.36], mortar: [0.24, 0.33, 0.14],
+          size: 512, rows: 5, cols: 4, base: [0.7, 0.65, 0.54], dark: [0.48, 0.44, 0.36], mortar: [0.27, 0.3, 0.19],
           mortarW: 0.04, seed: 37, vary: 0.26, grit: 0.6, bond: true,
-          moss: [0.3, 0.45, 0.16], mossAmount: 0.42,
+          moss: [0.32, 0.38, 0.2], mossAmount: 0.36,
         }));
       case 'hall':
         return toTexture(blocks({
           size: 512, rows: 4, cols: 4, base: [0.66, 0.6, 0.5], dark: [0.44, 0.39, 0.32], mortar: [0.22, 0.2, 0.16],
           mortarW: 0.022, seed: 41, vary: 0.2, grit: 0.55, bond: false,
-          moss: [0.3, 0.4, 0.18], mossAmount: 0.22,
+          moss: [0.33, 0.37, 0.22], mossAmount: 0.22,
         }));
       case 'nave':
         return toTexture(blocks({
@@ -584,7 +584,7 @@ export class TextureLibrary {
         return toTexture(blocks({
           size: 512, rows: 3, cols: 3, base: [0.72, 0.63, 0.47], dark: [0.47, 0.4, 0.3], mortar: [0.25, 0.2, 0.14],
           mortarW: 0.02, seed: 47, vary: 0.18, grit: 0.45, bond: false,
-          moss: [0.32, 0.4, 0.2], mossAmount: 0.18,
+          moss: [0.34, 0.37, 0.23], mossAmount: 0.18,
         }));
       case 'dungeonWall':
         return toTexture(blocks({

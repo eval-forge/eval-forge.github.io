@@ -142,6 +142,8 @@ export class Game {
   private readonly partLights: ParticleLight[] = [];
   private rumbleKick = 0;
   private running = false;
+  /** Debug: stop ticking and drawing (the last frame stays on screen). */
+  frozen = false;
   /** Extra per-frame hooks (debug API, perf sampling). */
   readonly onFrame = new Set<(dt: number) => void>();
 
@@ -444,6 +446,7 @@ export class Game {
     requestAnimationFrame(this.frame);
     const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000));
     this.last = now;
+    if (this.frozen) return;
     this.tick(dt);
   };
 
@@ -538,14 +541,14 @@ export class Game {
   private menuFrame(dt: number): void {
     // A slow day keeps turning behind the menu.
     const cycle = (this.time * 0.008) % 1;
-    this.run.clock.t = (0.16 + 0.6 * cycle) * DAY_LENGTH;
+    this.run.clock.t = (0.24 + 0.62 * cycle) * DAY_LENGTH;
     this.fade = Math.min(1, this.fade + dt);
     this.scenes.update(dt);
     this.scenes.frame(dt);
     const cam = this.renderer.camera;
     const a = this.time * 0.035 + 0.6;
-    cam.position.set(Math.sin(a) * 27, 8.5 + Math.sin(this.time * 0.11) * 1.5, 9 + Math.cos(a) * 27);
-    cam.lookAt(0, 4.2, -6);
+    cam.position.set(Math.sin(a) * 16, 12.5 + Math.sin(this.time * 0.11) * 1.5, 14 + Math.cos(a) * 15);
+    cam.lookAt(0, 3.4, -12);
     this.torchRig.frame(dt);
     this.ghost.visible = false;
   }
@@ -576,6 +579,38 @@ export class Game {
     if (run.entered && p.z > EXIT_Z && this.player.alive) {
       this.endRun('escaped', run.clock.isDark ? 'You slid out under the closing door.' : 'You walked out into the last of the light.');
     }
+  }
+
+  /**
+   * Run the simulation synchronously, faster than real time (automated
+   * playtests). Does everything a frame does except draw. `each` may return
+   * false to stop early. Returns the number of steps taken.
+   */
+  simulate(steps: number, each?: (i: number) => boolean | void): number {
+    let i = 0;
+    while (i < steps && this.state === 'playing') {
+      this.fixedStep();
+      i++;
+      if (i % 2 === 0) {
+        this.scenes.update(2 * H);
+        this.player.frame(2 * H, 1, this.renderer.camera);
+        this.renderer.camera.updateMatrixWorld();
+        if (this.state === 'playing') {
+          this.updateInteraction();
+          this.handleActions();
+          this.explore(2 * H);
+        }
+      }
+      if (each && each(i) === false) break;
+    }
+    return i;
+  }
+
+  /** Refresh what the crosshair is on right now (automated playtests). */
+  refreshInteraction(): string | null {
+    this.player.frame(0, 1, this.renderer.camera);
+    this.updateInteraction();
+    return this.prompt;
   }
 
   private onClock(e: ClockEvent): void {
@@ -840,9 +875,9 @@ export class Game {
     for (const s of this.sconcePool) pl.push({ pos: s.pos, radius: s.radius, r: 0.9 * s.level, g: 0.55 * s.level, b: 0.28 * s.level });
     this.particles.lights = pl;
     const amb = this.particles.ambient;
-    amb.r = Math.min(1.2, (look.hemiSky.r * look.hemiIntensity + look.sunColor.r * look.sunIntensity * 0.4) * o * 0.7);
-    amb.g = Math.min(1.2, (look.hemiSky.g * look.hemiIntensity + look.sunColor.g * look.sunIntensity * 0.4) * o * 0.7);
-    amb.b = Math.min(1.2, (look.hemiSky.b * look.hemiIntensity + look.sunColor.b * look.sunIntensity * 0.4) * o * 0.7);
+    amb.r = Math.min(1.2, (look.hemiSky.r * look.hemiIntensity * 0.5 + look.sunColor.r * look.sunIntensity * 0.4) * o * 0.7);
+    amb.g = Math.min(1.2, (look.hemiSky.g * look.hemiIntensity * 0.5 + look.sunColor.g * look.sunIntensity * 0.4) * o * 0.7);
+    amb.b = Math.min(1.2, (look.hemiSky.b * look.hemiIntensity * 0.5 + look.sunColor.b * look.sunIntensity * 0.4) * o * 0.7);
     this.particles.update(dt);
 
     // Grade. Underground nothing may lift black: no lift, contrast never below 1.
@@ -850,7 +885,8 @@ export class Game {
     g.tint.r = lerp(1, look.tint.r, o);
     g.tint.g = lerp(1, look.tint.g, o);
     g.tint.b = lerp(1, look.tint.b, o);
-    g.saturation = lerp(1, look.saturation, o);
+    // Firelight alone: the filmic curve deepens dim orange toward red, so ease the saturation back underground.
+    g.saturation = lerp(0.78, look.saturation, o);
     g.contrast = zoneC ? Math.max(1, lerp(1.04, look.contrast, o)) : look.contrast;
     g.exposure = lerp(1, look.exposure, o);
     g.lift = zoneC ? 0 : look.lift;

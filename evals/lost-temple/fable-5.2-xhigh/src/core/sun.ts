@@ -139,7 +139,7 @@ const KEYS: Key[] = [
     f: 0.0, // first light
     sunColor: hex(0xff8f55), sunIntensity: 0.55,
     skyTop: hex(0x34467e), skyHorizon: hex(0xffa77c),
-    hemiSky: hex(0x8a98d0), hemiGround: hex(0x5a4838), hemiIntensity: 0.42,
+    hemiSky: hex(0x8a98d0), hemiGround: hex(0x5a4838), hemiIntensity: 0.8,
     fog: hex(0xd6a48c), fogDensity: 0.013,
     tint: { r: 1.1, g: 0.95, b: 0.9 }, saturation: 1.05, contrast: 0.96, exposure: 0.95, lift: 0.02,
     stars: 0.15,
@@ -148,7 +148,7 @@ const KEYS: Key[] = [
     f: 0.1, // morning
     sunColor: hex(0xffd49a), sunIntensity: 2.3,
     skyTop: hex(0x4675c6), skyHorizon: hex(0xd3e2ee),
-    hemiSky: hex(0xa6c2ee), hemiGround: hex(0x6a6046), hemiIntensity: 0.8,
+    hemiSky: hex(0xa6c2ee), hemiGround: hex(0x6a6046), hemiIntensity: 1.52,
     fog: hex(0xc6d6dc), fogDensity: 0.007,
     tint: { r: 1.04, g: 1.0, b: 0.96 }, saturation: 1.08, contrast: 1.0, exposure: 1.0, lift: 0.01,
     stars: 0,
@@ -157,7 +157,7 @@ const KEYS: Key[] = [
     f: 0.5, // solar noon
     sunColor: hex(0xfff3de), sunIntensity: 3.2,
     skyTop: hex(0x2c6bcc), skyHorizon: hex(0xb8d6f0),
-    hemiSky: hex(0xb6cef6), hemiGround: hex(0x746a50), hemiIntensity: 1.0,
+    hemiSky: hex(0xb6cef6), hemiGround: hex(0x746a50), hemiIntensity: 1.9,
     fog: hex(0xbdd2e2), fogDensity: 0.006,
     tint: { r: 1, g: 1, b: 1 }, saturation: 1.1, contrast: 1.05, exposure: 1.0, lift: 0,
     stars: 0,
@@ -166,7 +166,7 @@ const KEYS: Key[] = [
     f: 0.78, // late afternoon
     sunColor: hex(0xffcb84), sunIntensity: 2.6,
     skyTop: hex(0x3865b4), skyHorizon: hex(0xf0cc9c),
-    hemiSky: hex(0xaeb6d6), hemiGround: hex(0x70583c), hemiIntensity: 0.8,
+    hemiSky: hex(0xaeb6d6), hemiGround: hex(0x70583c), hemiIntensity: 1.52,
     fog: hex(0xdec49c), fogDensity: 0.007,
     tint: { r: 1.07, g: 0.98, b: 0.89 }, saturation: 1.1, contrast: 1.05, exposure: 1.0, lift: 0,
     stars: 0,
@@ -175,7 +175,7 @@ const KEYS: Key[] = [
     f: 0.93, // sunset
     sunColor: hex(0xff6526), sunIntensity: 1.7,
     skyTop: hex(0x383874), skyHorizon: hex(0xff7636),
-    hemiSky: hex(0x9e6e86), hemiGround: hex(0x5a3020), hemiIntensity: 0.5,
+    hemiSky: hex(0x9e6e86), hemiGround: hex(0x5a3020), hemiIntensity: 0.95,
     fog: hex(0xde7444), fogDensity: 0.01,
     tint: { r: 1.24, g: 0.85, b: 0.68 }, saturation: 1.2, contrast: 1.1, exposure: 0.96, lift: 0,
     stars: 0.1,
@@ -184,7 +184,7 @@ const KEYS: Key[] = [
     f: 1.0, // last light
     sunColor: hex(0xc02c18), sunIntensity: 0.12,
     skyTop: hex(0x181636), skyHorizon: hex(0x882828),
-    hemiSky: hex(0x3e2e4e), hemiGround: hex(0x201418), hemiIntensity: 0.22,
+    hemiSky: hex(0x3e2e4e), hemiGround: hex(0x201418), hemiIntensity: 0.42,
     fog: hex(0x4e2228), fogDensity: 0.014,
     tint: { r: 1.1, g: 0.85, b: 0.9 }, saturation: 0.9, contrast: 1.1, exposure: 0.9, lift: 0,
     stars: 0.6,
@@ -193,7 +193,7 @@ const KEYS: Key[] = [
     f: 1.04, // night (moon)
     sunColor: hex(0x8ea6ff), sunIntensity: 0.28,
     skyTop: hex(0x04050d), skyHorizon: hex(0x0b1124),
-    hemiSky: hex(0x242e4c), hemiGround: hex(0x090b12), hemiIntensity: 0.13,
+    hemiSky: hex(0x242e4c), hemiGround: hex(0x090b12), hemiIntensity: 0.21,
     fog: hex(0x06090f), fogDensity: 0.02,
     tint: { r: 0.82, g: 0.92, b: 1.15 }, saturation: 0.6, contrast: 1.15, exposure: 0.9, lift: 0,
     stars: 1,

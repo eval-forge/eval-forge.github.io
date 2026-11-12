@@ -32,8 +32,9 @@ export function* buildJungle(k: SceneKit): Generator<void> {
       pos[i * 3] = x;
       pos[i * 3 + 1] = h;
       pos[i * 3 + 2] = z;
-      uv[i * 2] = x / 7;
-      uv[i * 2 + 1] = z / 7;
+      // Height feeds the UVs too, so the texture does not smear down the gorge and valley walls.
+      uv[i * 2] = (x + h * 0.35) / 7;
+      uv[i * 2 + 1] = (z + h) / 7;
       // Colour: trodden earth on the trail, wet sand in the river, bare rock in the gorge, grass elsewhere.
       const off = Math.abs(x - trail);
       const onTrail = 1 - smoothstep(1.2, 3.4, off);
@@ -41,18 +42,20 @@ export function* buildJungle(k: SceneKit): Generator<void> {
       const gorge = 1 - smoothstep(5, 7.5, Math.abs(z - J.gorgeZ));
       const plaza = (1 - smoothstep(56, 62, z)) * (1 - smoothstep(13, 19, Math.abs(x)));
       const n = 0.86 + 0.28 * Math.abs(Math.sin(x * 1.7 + z * 2.3) * Math.cos(x * 0.9 - z * 1.3));
-      let r = 0.42;
-      let g = 0.62;
-      let b = 0.3;
+      // Vertex colours are linear: these are darker than they read as numbers.
+      let r = 0.17;
+      let g = 0.27;
+      let b = 0.09;
       const mix = (tr: number, tg: number, tb: number, t: number): void => {
         r += (tr - r) * t;
         g += (tg - g) * t;
         b += (tb - b) * t;
       };
-      mix(0.62, 0.5, 0.36, onTrail * 0.9);
-      mix(0.66, 0.6, 0.44, river);
-      mix(0.5, 0.48, 0.44, gorge);
-      mix(0.62, 0.6, 0.54, plaza);
+      const steep = smoothstep(0.55, 1.3, Math.abs(jungleHeight(x + 0.6, z) - jungleHeight(x - 0.6, z)) + Math.abs(jungleHeight(x, z + 0.6) - jungleHeight(x, z - 0.6)));
+      mix(0.4, 0.29, 0.18, onTrail * 0.9);
+      mix(0.46, 0.4, 0.27, river);
+      mix(0.24, 0.21, 0.17, Math.max(gorge * 0.9, steep));
+      mix(0.42, 0.4, 0.35, plaza);
       col[i * 3] = r * n;
       col[i * 3 + 1] = g * n;
       col[i * 3 + 2] = b * n;
@@ -166,7 +169,9 @@ export function* buildJungle(k: SceneKit): Generator<void> {
   // Fire ring.
   const fy = jungleHeight(0.2, 157.2);
   for (let i = 0; i < 7; i++) rock(k, 0.2 + Math.cos(i * 0.9) * 0.7, fy - 0.12, 157.2 + Math.sin(i * 0.9) * 0.7, 0.24, { solid: false, squash: 0.8 });
-  k.box(-0.15, fy, 156.9, 0.55, fy + 0.12, 157.5, 'char', { solid: false });
+  k.cyl(0.2, fy - 0.06, 157.2, 0.52, 0.1, 'rock', { seg: 9, tint: 0.3, solid: false }); // ash bed
+  k.boxRot(0.2, fy + 0.1, 157.2, 0.13, 0.13, 0.85, 0.5, 'wood', { tint: 0.35, solid: false });
+  k.boxRot(0.2, fy + 0.17, 157.2, 0.12, 0.12, 0.8, 2.1, 'wood', { tint: 0.3, solid: false });
   k.prop('rock1', 'rock', 2, 1.6, fy + 0.3, 156.2);
   k.prop('rock2', 'rock', 4, -1.4, fy + 0.3, 158.4);
   k.prop('sandbag', 'sandbag', 8, 3.4, by + 0.3, 164.4);
