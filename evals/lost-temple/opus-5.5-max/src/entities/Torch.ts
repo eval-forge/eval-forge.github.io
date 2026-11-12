@@ -34,18 +34,44 @@ export class Torch {
   flicker = 1;
   private lower = 0;
 
+  /**
+   * The hand-held torch is drawn unlit (basic materials scaled by the flame and the daylight):
+   * the flame sits a hand's width from the wrap, and a real point light that close burns the
+   * handle to white. In zone C the scale is the flame alone, so a dead torch is black too.
+   */
+  private viewMats: { mat: THREE.MeshBasicMaterial; base: THREE.Color }[] = [];
+
   constructor(private mats: Materials, private lighting: Lighting, camera: THREE.Camera, private sfx: Sfx, private fx: Particles) {
-    const stick = cylMesh(mats, 'darkWood', 0.022, 0.03, 0.62, 8);
-    stick.position.y = -0.18;
-    const wrap = cylMesh(mats, 'burlap', 0.05, 0.042, 0.16, 10, 0x5a4a3a);
-    wrap.position.y = 0.15;
-    this.headMesh = cylMesh(mats, 'burlap', 0.046, 0.05, 0.07, 10, 0x2a1e16);
-    this.headMesh.position.y = 0.25;
-    for (const m of [stick, wrap, this.headMesh]) {
+    const parts: [THREE.Mesh, number, THREE.Texture][] = [
+      [cylMesh(mats, 'darkWood', 0.022, 0.03, 0.62, 8), 0x8a7458, mats.tex.wood.map],
+      [cylMesh(mats, 'burlap', 0.05, 0.042, 0.16, 10, 0x5a4a3a), 0x9a8468, mats.tex.burlap.map],
+      [cylMesh(mats, 'burlap', 0.046, 0.05, 0.07, 10, 0x2a1e16), 0x4a3a2c, mats.tex.burlap.map],
+    ];
+    const ys = [-0.18, 0.15, 0.25];
+    parts.forEach(([m, hex, map], i) => {
+      // bake a soft key light into the vertex colours so the unlit handle still reads as round
+      const g = m.geometry as THREE.BufferGeometry;
+      const nrm = g.getAttribute('normal');
+      const cols = g.getAttribute('color') as THREE.BufferAttribute | undefined;
+      const key = new THREE.Vector3(-0.6, 0.5, 0.6).normalize();
+      if (cols) {
+        for (let v = 0; v < nrm.count; v++) {
+          const d = nrm.getX(v) * key.x + nrm.getY(v) * key.y + nrm.getZ(v) * key.z;
+          const k = 0.45 + 0.55 * Math.max(0, d);
+          cols.setXYZ(v, cols.getX(v) * k, cols.getY(v) * k, cols.getZ(v) * k);
+        }
+        cols.needsUpdate = true;
+      }
+      const base = new THREE.Color(hex);
+      const mat = new THREE.MeshBasicMaterial({ map, color: base.clone(), vertexColors: !!cols, fog: false });
+      this.viewMats.push({ mat, base });
+      m.material = mat;
+      m.position.y = ys[i];
       m.castShadow = false;
       m.receiveShadow = false;
       this.view.add(m);
-    }
+    });
+    this.headMesh = parts[2][0];
     this.head.position.set(0, 0.3, 0);
     this.view.add(this.head);
     for (let i = 0; i < 2; i++) {
@@ -62,7 +88,7 @@ export class Torch {
   }
 
   /** Per-frame: flame look, light, crackle, sparks while relighting. */
-  update(dt: number, st: TorchState, active: boolean) {
+  update(dt: number, st: TorchState, active: boolean, ambient = 0) {
     this.t += dt;
     const lit = st.lit && active;
     const relight = st.isRelighting && active;
@@ -81,6 +107,9 @@ export class Torch {
       const k = (0.55 + 0.45 * inten) * (i === 0 ? 1 : 0.7);
       s.scale.set(0.15 * k * f, 0.27 * k * (2 - f), 1);
     }
+    // the handle: daylight (none in zone C) plus the flame's own glow
+    const glow = ambient + (lit ? (0.3 + 0.6 * inten) * f : 0) + (relight && this.relightSpark > 0.2 ? 0.25 : 0);
+    for (const v of this.viewMats) v.mat.color.copy(v.base).multiplyScalar(Math.min(1.3, glow));
     this.head.getWorldPosition(this.flamePos);
     const L = this.lighting.torch;
     if (lit) {
@@ -88,7 +117,7 @@ export class Torch {
       L.distance = Math.max(2, st.radius * 1.25);
       L.position.copy(this.flamePos);
       L.shadow.autoUpdate = true;
-      if (Math.random() < dt * 5) this.fx.embers(this.flamePos.clone().add(new THREE.Vector3(0, 0.08, 0)), 1);
+      if (Math.random() < dt * 5) this.fx.embers(this.flamePos.clone().add(new THREE.Vector3(0, 0.08, 0)), 1, undefined, true);
     } else {
       L.intensity = 0;
       // keep castShadow on (toggling it recompiles every shader); just stop re-rendering the cube map
@@ -98,7 +127,7 @@ export class Torch {
       this.relightSpark -= dt;
       if (this.relightSpark <= 0) {
         this.relightSpark = 0.28 + Math.random() * 0.2;
-        this.fx.sparks(this.flamePos, 6);
+        this.fx.sparks(this.flamePos, 6, true);
         this.sfx.play('click', this.flamePos, 0.35, 1.6 + Math.random() * 0.4);
       }
     }

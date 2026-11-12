@@ -49,6 +49,8 @@ export class RelicManager {
   /** Callback to find which scene a point is in. */
   sceneAt: (p: THREE.Vector3) => SceneId | null = () => null;
   onLost: (rec: RelicRecord) => void = () => {};
+  /** Called whenever a body is created for a record (the game styles zone C objects). */
+  onSpawn: (live: LiveObject) => void = () => {};
 
   constructor(private physics: Physics, private models: RelicModels, private seed: number) {
     this.group.name = 'relics';
@@ -128,6 +130,7 @@ export class RelicManager {
     this.physics.addSync(body, obj);
     this.live.set(rec.uid, live);
     this.byHandle.set(body.handle, live);
+    this.onSpawn(live);
     return live;
   }
 

@@ -79,3 +79,7 @@ select { font-family: var(--font); background: #24180c; color: var(--ink); borde
 #map canvas { box-shadow: 0 10px 60px rgba(0, 0, 0, 0.8); }
 #debug { position: fixed; left: 180px; top: 12px; z-index: 30; font: 12px/1.35 ui-monospace, Consolas, monospace; color: #b8ffb8; background: rgba(0, 0, 0, 0.6); padding: 6px 9px; white-space: pre; pointer-events: none; }
 #clickToPlay { position: fixed; left: 50%; bottom: 14%; transform: translateX(-50%); z-index: 25; font-size: 18px; color: var(--ink); background: var(--panel); border: 1px solid var(--panel-edge); padding: 8px 16px; border-radius: 4px; pointer-events: none; }
+
+/* ---------- fatal error ---------- */
+.fatal { position: fixed; inset: 0; z-index: 100; background: #0c0906; color: var(--ink); padding: 48px; font-family: var(--font); }
+.fatal pre { white-space: pre-wrap; color: #ffb4a0; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 4px; }

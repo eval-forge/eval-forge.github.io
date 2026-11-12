@@ -58,13 +58,16 @@ function makePool(tex: THREE.Texture, additive: boolean, size: number): Pool {
 export class Particles {
   dust: Pool;
   glow: Pool;
+  /** Small glowing points for the torch in your hand (it sits half a metre from the eye). */
+  fine: Pool;
   group = new THREE.Group();
   private tmp = new THREE.Vector3();
 
   constructor(dotTex: THREE.Texture) {
     this.dust = makePool(dotTex, false, 0.09);
     this.glow = makePool(dotTex, true, 0.07);
-    this.group.add(this.dust.points, this.glow.points);
+    this.fine = makePool(dotTex, true, 0.022);
+    this.group.add(this.dust.points, this.glow.points, this.fine.points);
   }
 
   private emit(p: Pool, x: number, y: number, z: number, vx: number, vy: number, vz: number, life: number, r: number, g: number, b: number, grav: number, drag: number, lit: boolean) {
@@ -110,25 +113,25 @@ export class Particles {
     }
   }
 
-  embers(c: THREE.Vector3, n: number, wind?: THREE.Vector3) {
+  embers(c: THREE.Vector3, n: number, wind?: THREE.Vector3, near = false) {
     for (let k = 0; k < n; k++) {
-      this.emit(this.glow, c.x + (Math.random() - 0.5) * 0.08, c.y + Math.random() * 0.1, c.z + (Math.random() - 0.5) * 0.08,
+      this.emit(near ? this.fine : this.glow, c.x + (Math.random() - 0.5) * 0.08, c.y + Math.random() * 0.1, c.z + (Math.random() - 0.5) * 0.08,
         (Math.random() - 0.5) * 0.4 + (wind?.x ?? 0) * 0.3, 0.6 + Math.random() * 0.9, (Math.random() - 0.5) * 0.4 + (wind?.z ?? 0) * 0.3,
         0.5 + Math.random() * 0.8, 1.6, 0.7 + Math.random() * 0.3, 0.2, -0.5, 0.8, false);
     }
   }
 
-  sparks(c: THREE.Vector3, n: number) {
+  sparks(c: THREE.Vector3, n: number, near = false) {
     for (let k = 0; k < n; k++) {
       const a = Math.random() * Math.PI * 2;
       const sp = 2 + Math.random() * 4;
-      this.emit(this.glow, c.x, c.y, c.z, Math.cos(a) * sp, 1 + Math.random() * 3, Math.sin(a) * sp, 0.25 + Math.random() * 0.35, 2, 1.4, 0.6, 9.8, 0.5, false);
+      this.emit(near ? this.fine : this.glow, c.x, c.y, c.z, Math.cos(a) * sp, 1 + Math.random() * 3, Math.sin(a) * sp, 0.25 + Math.random() * 0.35, 2, 1.4, 0.6, 9.8, 0.5, false);
     }
   }
 
   /** lightAt returns 0..1 environmental light at a point (0 in the dark beyond torches). */
   update(dt: number, lightAt: (p: THREE.Vector3) => number) {
-    for (const p of [this.dust, this.glow]) {
+    for (const p of [this.dust, this.glow, this.fine]) {
       let any = false;
       for (let i = 0; i < MAX; i++) {
         if (p.life[i] <= 0) continue;
@@ -164,7 +167,7 @@ export class Particles {
   }
 
   clear() {
-    for (const p of [this.dust, this.glow]) {
+    for (const p of [this.dust, this.glow, this.fine]) {
       p.life.fill(0);
       for (let i = 0; i < MAX; i++) p.pos[i * 3 + 1] = -9999;
       (p.points.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;

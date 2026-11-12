@@ -30,7 +30,8 @@ export type Flag =
   | 'naveBlocked'
   | 'darkness'
   | 'doorShut'
-  | 'nestRope';
+  | 'nestRope'
+  | 'lairOpen';
 
 export type KeyItem = 'sunDisc' | 'serpentKey';
 
