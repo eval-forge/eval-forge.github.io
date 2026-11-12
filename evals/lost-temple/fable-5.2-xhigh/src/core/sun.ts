@@ -191,11 +191,13 @@ const KEYS: Key[] = [
   },
   {
     f: 1.04, // night (moon)
-    sunColor: hex(0x8ea6ff), sunIntensity: 0.28,
+    sunColor: hex(0x8ea6ff), sunIntensity: 0.55,
     skyTop: hex(0x04050d), skyHorizon: hex(0x0b1124),
-    hemiSky: hex(0x242e4c), hemiGround: hex(0x090b12), hemiIntensity: 0.21,
+    hemiSky: hex(0x242e4c), hemiGround: hex(0x090b12), hemiIntensity: 0.3,
     fog: hex(0x06090f), fogDensity: 0.02,
-    tint: { r: 0.82, g: 0.92, b: 1.15 }, saturation: 0.6, contrast: 1.15, exposure: 0.9, lift: 0,
+    // Contrast stays at 1 here: the grade pivots on mid grey, so anything above 1 crushes
+    // moonlit ground to pure black.
+    tint: { r: 0.82, g: 0.92, b: 1.15 }, saturation: 0.6, contrast: 1.0, exposure: 0.9, lift: 0,
     stars: 1,
   },
 ];

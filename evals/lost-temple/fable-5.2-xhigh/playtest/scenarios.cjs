@@ -2,7 +2,7 @@
  * Targeted checks of single systems in the running game: the Zone C darkness
  * probe, nightfall and the guardian sweep, being caught, the closing door,
  * trapped pedestals, the torch, crumbling floors, plank bridges, the boulder,
- * the block puzzle, the listening ceiling, climbing, sconces, scene memory,
+ * the block puzzle, the listening ceiling, climbing, the drawbridge, sconces, scene memory,
  * the sanctum collapse, menus and the save, carrying and throwing, the ghost,
  * a (faked) gamepad, and finally real keyboard, mouse and audio. Unlike playthrough.cjs these teleport and set the clock to get
  * where they need to be.
@@ -214,6 +214,43 @@ const Y_V = -14;
     console.log('    ', JSON.stringify(r));
     check(!r.standing && r.z1 < 41.5, 'half-closed door blocks a standing player', `gap ${r.gap}, got to z=${r.z1}`);
     check(r.outcome === 'escaped' && r.haul > 0, 'crouching under the closing door still escapes with the loot', `${r.outcome}, haul ${r.haul}`);
+  };
+
+  // ------------------------------------------------------------- drawbridge
+  scenarios.drawbridge = async () => {
+    await fresh();
+    const r = await ev(() => {
+      const g = __lt.game;
+      const p = g.player;
+      __lt.setTime(215);
+      // The terrace landing west of the canal, beside the winch.
+      __lt.teleport(-33.6, 0.3, -10);
+      __lt.sim(1);
+      const blocked = __lt.walkTo(-22, -10, { timeout: 4, hop: false });
+      __lt.teleport(-33.6, 0.3, -10);
+      __lt.sim(0.5);
+      __lt.use(-33.3, 1.0, -8.7);
+      __lt.sim(6);
+      let deck = null;
+      g.physics.world.forEachCollider((c) => {
+        if (g.physics.getMeta(c)?.kind === 'drawbridge') deck = c.parent();
+      });
+      const q = deck.rotation();
+      let crossings = 0;
+      let stalledAt = null;
+      for (let i = 0; i < 12 && !stalledAt; i++) {
+        for (const x of [-22, -32]) {
+          const w = __lt.walkTo(x, -10, { sprint: i % 2 === 0, hop: false, timeout: 12 });
+          if (w.ok) crossings++;
+          else stalledAt = stalledAt ?? w;
+        }
+      }
+      return { blocked, flag: g.hasFlag('drawbridge'), level: Math.abs(q.z) < 1e-6, fixed: deck.isFixed(), crossings, stalledAt, y: +p.pos.y.toFixed(2) };
+    });
+    check(!r.blocked.ok && r.blocked.x < -29, 'with the deck up there is no way over the canal', `stopped at x ${r.blocked.x}`);
+    check(r.flag && r.level, 'the winch lowers the deck level');
+    check(r.fixed, 'once down, the deck is static ground');
+    check(r.crossings === 24, 'twelve crossings each way, walking and sprinting, without a stall', `${r.crossings} of 24${r.stalledAt ? ' stalled at ' + JSON.stringify(r.stalledAt) : ''}`);
   };
 
   // ----------------------------------------------------------------- traps
