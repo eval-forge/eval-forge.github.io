@@ -47,6 +47,11 @@ export interface Interactable {
   reach?: number;
   /** Keep firing while the key is held (cranks). */
   repeat?: boolean;
+  /**
+   * How close to the anchor a line-of-sight hit may land and still count as "hit the thing
+   * itself" (anchors inside a solid object, like the haul cart). Default 0.9 m.
+   */
+  losSlack?: number;
 }
 
 export interface Prop {

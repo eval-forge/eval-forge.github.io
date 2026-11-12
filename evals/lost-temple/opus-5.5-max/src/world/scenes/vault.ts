@@ -261,7 +261,7 @@ export const vault: SceneDef = {
         openOffset: [0, 3.5, 0],
         mat: 'iron',
         duration: 2.5,
-        flag: 'darkness',
+        flag: 'lairOpen',
         navGate: 'portcullis',
         sound: 'gateOpen',
         bars: true,

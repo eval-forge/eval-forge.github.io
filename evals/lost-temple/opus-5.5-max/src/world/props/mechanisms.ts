@@ -124,6 +124,8 @@ export class SlidingSlab implements Prop {
   private offset: THREE.Vector3;
   private moving = false;
   private loop: { stop(): void; setPos(p: THREE.Vector3): void } | null = null;
+  /** When set, the game drives the slab directly with setOpen (the great door closing at night). */
+  hold = false;
   constructor(private ctx: SceneCtx, rt: SceneRuntime, private o: SlabOpts) {
     this.id = o.id;
     this.closed = new THREE.Vector3(...o.pos);
@@ -168,6 +170,12 @@ export class SlidingSlab implements Prop {
     this.obj.position.copy(p);
   }
   fixedUpdate(dt: number) {
+    if (this.hold) {
+      this.loop?.stop();
+      this.loop = null;
+      this.moving = false;
+      return;
+    }
     if (this.o.flag && this.ctx.run.flag(this.o.flag)) this.target = 1;
     if (Math.abs(this.open - this.target) < 1e-4) {
       if (this.moving) {
@@ -648,11 +656,12 @@ export class HaulCart implements Prop {
       kind: 'interact',
       id: id + ':bank',
       position: new THREE.Vector3(pos[0], pos[1] + 1.3, pos[2]),
-      reach: 3,
+      reach: 3.2,
+      losSlack: 1.5,
       prompt: () => {
         const n = this.actions.carriedCount();
         if (n > 0) return `E  Bank ${n} relic${n === 1 ? '' : 's'} in the haul cart`;
-        return 'Hold E  Leave the temple for good (end the run)';
+        return null;
       },
       holdTime: 0,
       interact: () => {
@@ -669,7 +678,8 @@ export class HaulCart implements Prop {
       kind: 'interact',
       id: id + ':leave',
       position: new THREE.Vector3(pos[0], pos[1] + 1.3, pos[2]),
-      reach: 3,
+      reach: 3.2,
+      losSlack: 1.5,
       holdTime: 1.5,
       prompt: () => (this.actions.carriedCount() > 0 ? null : 'Hold E  Leave the temple for good (end the run)'),
       interact: () => this.actions.leave(),

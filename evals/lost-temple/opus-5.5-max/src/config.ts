@@ -40,8 +40,10 @@ export const GROUP_DART = groups(G.DART, G.STATIC | G.PROP);
 export const GROUP_GUARDIAN = groups(G.GUARDIAN, G.STATIC | G.PLAYER | G.PROP | G.HELD);
 /** Sensors detect props, debris, held objects. */
 export const GROUP_SENSOR = groups(G.SENSOR, G.PROP | G.DEBRIS | G.HELD);
-/** Colliders that only block rays (roof slabs for sunlight tests, etc.). */
-export const GROUP_RAYONLY = groups(G.RAYONLY, 0);
+/** Colliders that only block rays (roof slabs for sunlight tests, etc.): only RAYONLY queries see them. */
+export const GROUP_RAYONLY = groups(G.RAYONLY, G.RAYONLY);
+/** Query groups for sunlight tests: the static world plus ray-only blockers. */
+export const SUNLIGHT_QUERY = groups(G.RAYONLY, G.STATIC | G.RAYONLY);
 
 export const QUALITY = {
   low: { pixelRatio: 0.75, shadowMap: 1024, torchShadow: 256, msaa: 0, vegetation: 0.45, grass: 0.35, shadowRange: 34 },

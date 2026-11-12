@@ -31,6 +31,8 @@ export interface DirectorHost {
   playerLightRadius(): number;
   /** Player stands in some other light (a lit sconce, or sun/moon outdoors). */
   playerInLight(): boolean;
+  /** Is the static world around this point loaded (so line-of-sight rays mean something)? */
+  isLoadedAt(p: THREE.Vector3): boolean;
   torchFlame(): THREE.Vector3 | null;
   litSconces(): { id: string; pos: THREE.Vector3; radius: number }[];
   douseSconce(id: string): void;
@@ -148,7 +150,7 @@ export class GuardianDirector {
     const head = new THREE.Vector3(feet.x, feet.y + pl.eyeHeight, feet.z);
     const dist = g.pos.distanceTo(feet);
     let los = false;
-    if (dist < 45) los = this.h.physics.lineOfSight(g.eye, head, groups(G.GUARDIAN, G.STATIC));
+    if (dist < 45 && this.h.isLoadedAt(g.pos)) los = this.h.physics.lineOfSight(g.eye, head, groups(G.GUARDIAN, G.STATIC));
     const fx = Math.sin(g.yaw);
     const fz = Math.cos(g.yaw);
     const dx = feet.x - g.pos.x;
