@@ -444,17 +444,19 @@ export class Game {
 
   private frame = (now: number): void => {
     requestAnimationFrame(this.frame);
-    const dt = Math.min(0.1, Math.max(0, (now - this.last) / 1000));
+    const real = Math.max(0, (now - this.last) / 1000);
     this.last = now;
     if (this.frozen) return;
-    this.tick(dt);
+    // The simulation never takes more than a tenth of a second in one bite; the
+    // frame counter is fed the real interval so a slow machine reads as slow.
+    this.tick(Math.min(0.1, real), real);
   };
 
   /** One rendered frame. Public so automated tests can drive time themselves. */
-  tick(dt: number): void {
+  tick(dt: number, real = dt): void {
     this.time += dt;
-    if (dt > 0) {
-      this.frameMs = lerp(this.frameMs, dt * 1000, 0.06);
+    if (real > 0) {
+      this.frameMs = lerp(this.frameMs, Math.min(2000, real * 1000), 0.06);
       this.fps = 1000 / Math.max(0.01, this.frameMs);
     }
     this.input.poll();
@@ -567,7 +569,7 @@ export class Game {
 
     this.sinceHurt += H;
     this.hurtSfxT = Math.max(0, this.hurtSfxT - H);
-    if (this.sinceHurt > 9 && run.health < 100 && this.player.alive) run.health = Math.min(100, run.health + 2.2 * H);
+    if (this.sinceHurt > 9 && run.health < 100 && this.player.alive) run.health = Math.min(100, run.health + 1.5 * H);
     while (run.noises.length > 0 && run.time - run.noises[0].t > 1) run.noises.shift();
 
     // The great door: in once, out once.
@@ -577,7 +579,15 @@ export class Game {
       this.toast('You are inside. Stepping back out through the great door ends the run and banks the haul.', 'info');
     }
     if (run.entered && p.z > EXIT_Z && this.player.alive) {
-      this.endRun('escaped', run.clock.isDark ? 'You slid out under the closing door.' : 'You walked out into the last of the light.');
+      const left = run.clock.remaining;
+      const epitaph = run.clock.isDark
+        ? 'You slid out under the closing door.'
+        : left < 120
+          ? 'You walked out into the last of the light.'
+          : left < 390
+            ? 'You walked out with the afternoon to spare.'
+            : 'You walked out before the day was half done.';
+      this.endRun('escaped', epitaph);
     }
   }
 

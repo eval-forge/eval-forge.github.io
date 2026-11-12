@@ -182,9 +182,11 @@ export class Renderer {
   resize(force = false): void {
     const w = Math.max(2, this.canvas.clientWidth || window.innerWidth);
     const h = Math.max(2, this.canvas.clientHeight || window.innerHeight);
-    const pr = Math.min(window.devicePixelRatio || 1, 2) * this.quality.pixelRatio;
-    const pw = Math.max(2, Math.floor(w * Math.min(pr, 2)));
-    const ph = Math.max(2, Math.floor(h * Math.min(pr, 2)));
+    // The preset caps the device pixel ratio rather than multiplying it: a 2x laptop
+    // panel at "medium" renders CSS pixels, not four times as many.
+    const pr = Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio);
+    const pw = Math.max(2, Math.floor(w * pr));
+    const ph = Math.max(2, Math.floor(h * pr));
     this.gl.setPixelRatio(1);
     this.gl.setSize(pw, ph, false);
     if (force || this.target.width !== pw || this.target.height !== ph || this.target.samples !== this.quality.msaa) {

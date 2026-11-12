@@ -648,7 +648,6 @@ export class AudioEngine {
 
   /** Generative score: a slow pentatonic layer by day, a driving ostinato when the clock runs out. */
   private music(dt: number, s: AmbientState): void {
-    const c = this.ctx!;
     this.timers.beat -= dt;
     if (this.timers.beat > 0) return;
     const danger = s.danger;
@@ -658,9 +657,7 @@ export class AudioEngine {
     const i = this.beatIndex++;
     if (i % 32 === 0) this.chordRoot = [50, 48, 53, 45][Math.floor(i / 32) % 4];
     const root = this.chordRoot;
-    const g = c.createGain();
-    g.gain.value = 1;
-    g.connect(this.musicBus);
+    const g = this.musicBus;
     const calm = 1 - danger;
     if (calm > 0.05 && s.dungeon < 0.9) {
       // Plucked pentatonic notes, sparse.

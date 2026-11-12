@@ -112,12 +112,34 @@ const Y_V = -14;
   check(s.relics >= 1, 'picked up a relic');
 
   // ------------------------------------------------------- the broken halls
-  await route('up the temple steps', [[0, 20], [4.6, 10], [0, -6], [0, -15], [0, -21.5], [0, -27]]);
+  await route('up the temple steps', [[0, 20], [7, 16], [7, 3], [0, -6], [0, -15], [0, -21.5], [0, -27]]);
   s = await brief('halls entry');
   check(s.scene === 'halls', 'entered the halls');
-  await route('through the nave, sun stripes only', [[0, -33.5], [0, -63.5]], { timeout: 20 });
+  // Early morning: the whole nave is in shade and the scarabs own it. Take the blade corridor.
+  await route('west gallery to the blade corridor', [[-11.5, -30], [-11.5, -50.5]]);
+  for (const zb of [-54.2, -57, -59.8]) {
+    await route(`up to the blade at z=${zb}`, [[-11.5, zb + 1.3]], { sprint: false, tol: 0.25 });
+    const waited = await ev((zb) => {
+      // Watch the blade like a player would: go when the head is out in its wall slot and still moving away.
+      const g = __lt.game;
+      const blade = g.scenes.loaded.get('halls').entities.find((e) => e.pivot && e.wMax !== undefined && Math.abs(e.pivot.z - zb) < 0.1);
+      let prev = blade.tip().x;
+      let steps = 0;
+      g.simulate(600, () => {
+        const x = blade.tip().x;
+        const out = Math.abs(x + 11.5);
+        const going = out > Math.abs(prev + 11.5);
+        prev = x;
+        steps++;
+        return !(out > 1.7 && going);
+      });
+      return steps;
+    }, zb);
+    await route(`past the blade at z=${zb} (waited ${(waited / 60).toFixed(2)}s)`, [[-11.5, zb - 1.3]], { tol: 0.3 });
+  }
   s = await brief('north hall');
-  await route('to the catacomb seal', [[10, -67], [16, -70.4]]);
+  check(s.hp > 99, 'no blade touched the bot', `hp ${s.hp}`);
+  await route('to the catacomb seal', [[-11.5, -66], [10, -67], [16, -70.4]]);
   console.log('   prompt:', JSON.stringify(await use(16, Y_T + 2.6, -72.25)));
   check(await flag('sealOpen'), 'Sun Disc set in the seal');
   await sim(5);
@@ -132,7 +154,7 @@ const Y_V = -14;
   check(s.scene === 'catacombs', 'entered the catacombs');
   await view(page, 'play-ossuary');
   await route('north corridor to the flooded chamber', [[35, -92], [35, -99.5]], { sprint: false });
-  await route('wade the causeway to the island', [[35, -105.5], [29.5, -105.5], [29.5, -120.5], [36, -120.5], [36, -117.6]], { sprint: false, timeout: 60 });
+  await route('wade the causeway to the island', [[35, -105.5], [29.5, -105.5], [29.5, -120.5], [36, -120.5], [36, -117.6], [36, -115.5]], { sprint: false, timeout: 60 });
   s = await brief('island');
   console.log('   prompt:', JSON.stringify(await use(36, -7.34, -114)));
   check(await flag('serpentKey'), 'Serpent Key taken');
@@ -184,7 +206,9 @@ const Y_V = -14;
   check(s.scene === 'sanctum', 'came up into the sanctum');
   await route('to the cracked wall', [[-41, -58], [-41, -44], [-48, -38.4]]);
   console.log('   prompt:', JSON.stringify(await use(-48, Y_T + 1.5, -36)));
-  check(await flag('wallKicked'), 'cracked wall kicked out');
+  await sim(0.6);
+  console.log('   prompt:', JSON.stringify(await use(-48, Y_T + 1.5, -36)));
+  check(await flag('wallKicked'), 'cracked wall kicked out (two kicks)');
   await sim(2);
   await route('along the terrace to the winch', [[-48, -33], [-48, -12], [-42, -10], [-33.6, -10]]);
   console.log('   prompt:', JSON.stringify(await use(-33.3, 1.0, -8.7)));
@@ -193,8 +217,11 @@ const Y_V = -14;
   await route('over the drawbridge and across the courtyard', [[-30, -10], [-22, -10], [-16, -2], [-6, 20], [0, 36]]);
   s = await brief('at the door');
   const carried = s.loot;
-  await route('out of the great door', [[0, 41], [0, 46.5]]);
-  await sim(4);
+  await route('into the doorway', [[0, 41], [0, 43.6]]);
+  // Stepping over the threshold ends the run, so this last walk never "arrives".
+  await ev(() => __lt.walkTo(0, 47, { timeout: 4 }));
+  // The fade to the results screen runs on real frames, not simulated ones.
+  await page.waitForFunction(() => __lt.state().state === 'results', null, { timeout: 30000 }).catch(() => {});
   const end = await ev(() => {
     const s = __lt.state();
     return { state: s.state, outcome: s.outcome, result: s.result, coins: s.coins, time: s.time, scores: __lt.game.meta.data.scores, log: window.__log.splice(0) };

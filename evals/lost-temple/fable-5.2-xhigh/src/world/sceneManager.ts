@@ -34,12 +34,25 @@ export class SceneManager {
 
   /** Throw everything away (new run). */
   reset(): void {
-    this.building = null;
+    this.abandonBuild();
     this.queue = [];
     for (const id of [...this.loaded.keys()]) this.unload(id, false);
     this.game.reg.clear();
     this.unwanted.clear();
     this.current = 'jungle';
+  }
+
+  /**
+   * Drop a half-built scene, bodies and all. Just forgetting it would leave its
+   * physics behind: an invisible second bridge under the real one, for a start.
+   */
+  private abandonBuild(): void {
+    const b = this.building;
+    if (!b) return;
+    this.building = null;
+    for (const e of b.kit.entities) e.dispose();
+    this.game.physics.removeBody(b.kit.body);
+    disposeGroup(b.kit.group);
   }
 
   private start(id: SceneId): { id: SceneId; kit: SceneKit; gen: Generator<void> } {
@@ -159,14 +172,7 @@ export class SceneManager {
       if (!this.loaded.has(id) && this.building?.id !== id && !this.queue.includes(id)) this.queue.push(id);
     }
     this.queue = this.queue.filter((id) => wanted.has(id));
-    if (this.building && !wanted.has(this.building.id)) {
-      // No longer needed: abandon the half-built scene.
-      const k = this.building.kit;
-      for (const e of k.entities) e.dispose();
-      game.physics.removeBody(k.body);
-      disposeGroup(k.group);
-      this.building = null;
-    }
+    if (this.building && !wanted.has(this.building.id)) this.abandonBuild();
 
     // Time-sliced construction.
     const t0 = performance.now();

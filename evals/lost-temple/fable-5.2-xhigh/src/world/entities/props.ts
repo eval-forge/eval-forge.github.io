@@ -104,7 +104,7 @@ export class Prop implements Entity, Interactable {
     const size = propSize(rec.kind, rec.mass);
     const w = game.physics.world;
     this.body = w.createRigidBody(
-      RAPIER.RigidBodyDesc.dynamic().setTranslation(rec.x, rec.y + size, rec.z).setLinearDamping(0.15).setAngularDamping(0.9).setCcdEnabled(true),
+      RAPIER.RigidBodyDesc.dynamic().setTranslation(rec.x, rec.y + size, rec.z).setLinearDamping(0.15).setAngularDamping(2.6).setCcdEnabled(true),
     );
     this.collider = w.createCollider(
       RAPIER.ColliderDesc.ball(size * 0.9).setMass(rec.mass).setFriction(0.9).setRestitution(0.15).setCollisionGroups(GROUPS.prop),

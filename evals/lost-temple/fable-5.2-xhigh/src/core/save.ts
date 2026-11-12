@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sensitivity: 1,
   volume: 0.8,
   musicVolume: 0.6,
-  quality: 'high',
+  quality: 'medium',
   invertY: false,
   showGhost: true,
 };

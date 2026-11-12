@@ -111,9 +111,9 @@
 .held { position: absolute; left: 16px; bottom: 96px; font-size: 13px; color: var(--ink); text-shadow: 0 1px 2px #000; display: none; }
 .held.on { display: block; }
 
-.pulse { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 120px 40px rgba(210, 40, 20, 0.85); }
-.hurt { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, rgba(160, 20, 10, 0) 45%, rgba(160, 20, 10, 0.75) 100%); }
-.heavy { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 160px 30px rgba(0, 0, 0, 0.9); }
+.pulse { position: absolute; inset: 0; pointer-events: none; opacity: 0; will-change: opacity; box-shadow: inset 0 0 120px 40px rgba(210, 40, 20, 0.85); }
+.hurt { position: absolute; inset: 0; pointer-events: none; opacity: 0; will-change: opacity; background: radial-gradient(ellipse at center, rgba(160, 20, 10, 0) 45%, rgba(160, 20, 10, 0.75) 100%); }
+.heavy { position: absolute; inset: 0; pointer-events: none; opacity: 0; will-change: opacity; box-shadow: inset 0 0 160px 30px rgba(0, 0, 0, 0.9); }
 
 /* ---------------------------------------------------------------- menus */
 .menus { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; pointer-events: auto; }
