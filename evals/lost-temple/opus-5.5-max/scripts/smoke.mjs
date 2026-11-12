@@ -1,0 +1,21 @@
+// Boot, start a run, walk a little, report state + errors.
+import { launch, startRun, st, wait, sampleFps, shot } from './playtest-lib.mjs';
+import fs from 'node:fs';
+fs.mkdirSync(process.env.LT_SHOTS || 'shots', { recursive: true });
+const { browser, page, errors } = await launch();
+const t0 = Date.now();
+await shot(page, '00-menu');
+await startRun(page);
+console.log('run started in', Date.now() - t0, 'ms');
+console.log(JSON.stringify(await st(page), null, 1).slice(0, 2500));
+await wait(page, 1500);
+await shot(page, '01-camp');
+await page.evaluate(() => window.lostTemple.move(0, 1));
+await wait(page, 4000);
+await page.evaluate(() => window.lostTemple.stop());
+const s = await st(page);
+console.log('after walking', s.pos, s.scene, s.mode, 'remaining', s.remaining.toFixed(1));
+await shot(page, '02-walked');
+console.log('fps', await sampleFps(page, 2000));
+console.log('errors:', errors.length ? errors.slice(0, 30).join('\n') : 'none');
+await browser.close();
